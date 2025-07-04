@@ -36,6 +36,7 @@ public class WordleServer {
             // 1. 各プレイヤーにお題となる単語を【並行して】決めさせる
             // スレッド間で単語を受け渡すための配列
             final String[] answerWords = new String[2]; // [0] = PlayerA入力, [1] = PlayerB入力
+            WordList wordList = new WordList();
 
             // Player Aの単語入力を担当するスレッド
             Thread threadA = new Thread(() -> {
@@ -43,7 +44,7 @@ public class WordleServer {
                     outA.println("対戦相手のお題となる単語(5文字)を入力してください。");
                     while (true) {
                         String word = inA.readLine();
-                        if (word != null && WordList.isInList(word.toLowerCase())) {
+                        if (word != null && wordList.isInList(word.toLowerCase())) {
                             answerWords[0] = word.toLowerCase(); // Player Bが当てる単語
                             break;
                         }
@@ -61,7 +62,7 @@ public class WordleServer {
                     outB.println("対戦相手のお題となる単語(5文字)を入力してください。");
                     while (true) {
                         String word = inB.readLine();
-                        if (word != null && WordList.isInList(word.toLowerCase())) {
+                        if (word != null && wordList.isInList(word.toLowerCase())) {
                             answerWords[1] = word.toLowerCase(); // Player Aが当てる単語
                             break;
                         }
@@ -106,7 +107,7 @@ public class WordleServer {
                 String guessA;
                 while (true) {
                     guessA = inA.readLine();
-                    if (guessA != null && WordList.isInList(guessA.toLowerCase())) break;
+                    if (guessA != null && wordList.isInList(guessA.toLowerCase())) break;
                     outA.println("エラー: その単語はリストにありません。もう一度入力してください。");
                 }
                 playerA.pushAnswer(guessA.toLowerCase(), gameCount);
@@ -120,7 +121,7 @@ public class WordleServer {
                 String guessB;
                 while (true) {
                     guessB = inB.readLine();
-                    if (guessB != null && WordList.isInList(guessB.toLowerCase())) break;
+                    if (guessB != null && wordList.isInList(guessB.toLowerCase())) break;
                     outB.println("エラー: その単語はリストにありません。もう一度入力してください。");
                 }
                 playerB.pushAnswer(guessB.toLowerCase(), gameCount);
