@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.util.Scanner;
 import javax.swing.*;
 
 public class KeyBoardd {
@@ -8,9 +9,15 @@ public class KeyBoardd {
         frame.getContentPane().add(k);
         frame.setBackground(Color.white);
         frame.setLayout(new GridLayout(3,1));
-        frame.setSize(400,300);
+        frame.setSize(400,500);
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        Scanner sc = new Scanner(System.in);
+        while(true){
+            k.updateCol(sc.nextLine().toCharArray()[0],Color.yellow);
+            frame.repaint();
+        }
     }
 }
 
@@ -64,6 +71,12 @@ class KeyBoardPanel extends JPanel {
         g.fillRect(x, y, 34, 34);
         g.setColor(Color.white);
         drawStringCenter(g, String.valueOf(c), x + 17, y + 17);
+    }
+
+    // キーボードの色リストを更新するメソッド．
+    // updateCol('A',Color.yellow); でAの表示色を黄色にする
+    void updateCol(char c, Color col) {
+        usedCharCol[(int) c - 65] = col;
     }
 
     public static void drawStringCenter(Graphics g, String text, int x, int y) {
