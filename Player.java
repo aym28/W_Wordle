@@ -23,19 +23,48 @@ class Player {
      * @return 回答シートの文字列
      */
     public String getAnswerSheetString() {
+        final boolean[] checked = new boolean[WORD_SIZE];
+        final int[] result = new int[WORD_SIZE];        //1:green, 2:yellow, 0:glay    //enum型の方がいいかも？
         StringBuilder sb = new StringBuilder();
+
         for (String word : this.answerSheet) {
             if (word.equals("")) {
                 sb.append(" _ _ _ _ _");
             } else {
+                for (int i = 0; i < WORD_SIZE; i++) {       //初期化、緑判定
+                    checked[i] = false;
+                    result[i] = 0;
+                    if (word.charAt(i) == this.answer.charAt(i)) {
+                        checked[i] = true;
+                        result[i] = 1;
+                    }
+                }
+                for (int i = 0; i < WORD_SIZE; i++) {       //黄判定、灰判定
+                    if (result[i] == 1) continue;
+
+                    boolean allfound = false;       //答えの単語にも含まれるこの文字は、答えでの登場回数分だけ予測の単語で見つかった
+                    for (int j = 0; j < WORD_SIZE; j++) {
+                        if (word.charAt(i) == this.answer.charAt(j) && !checked[j]) {
+                            checked[i] = true;
+                            result[i] = 2;
+                            allfound = true;
+                            break;
+                        }
+                        if (!allfound) result[i] = 0;
+                    }
+                }
                 for (int i = 0; i < WORD_SIZE; i++) {
                     sb.append(" ");
-                    if (word.charAt(i) == this.answer.charAt(i)) {
-                        sb.append(COLOR_GREEN).append(word.charAt(i)).append(COLOR_END);
-                    } else if (this.answer.contains(String.valueOf(word.charAt(i)))) {
-                        sb.append(COLOR_YELLOW).append(word.charAt(i)).append(COLOR_END);
-                    } else {
-                        sb.append(word.charAt(i));
+                    switch(result[i]) {
+                        case 1:
+                            sb.append(COLOR_GREEN).append(word.charAt(i)).append(COLOR_END);
+                            break;
+                        case 2:
+                            sb.append(COLOR_YELLOW).append(word.charAt(i)).append(COLOR_END);
+                            break;
+                        default:
+                            sb.append(word.charAt(i));
+                            break;
                     }
                 }
             }
