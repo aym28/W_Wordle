@@ -13,6 +13,8 @@ class Player {
     private boolean hasUsedItemThisTurn;
     private boolean isSilenced;
     private boolean hasDoubleMove;
+    String originalAnswer; // ゲーム開始時のお題を保存
+    private boolean hasUsedChaosChange; // カオスチェンジを使用したか
 
     // コンソール用のカラーコード
     final String COLOR_GREEN = "\u001b[00;42m";
@@ -23,15 +25,17 @@ class Player {
         this.MAX_GAME_ROUND = maxGameRound;
         this.WORD_SIZE = wordSize;
         this.answer = answer;
+        this.originalAnswer = answer; // --- 初期お題を保存 ---
         this.answerSheet = new String[MAX_GAME_ROUND];
         Arrays.fill(this.answerSheet, "");
 
-        this.points = 100;
+        // --- 初期化 ---
+        this.points = 10000;
         this.hasUsedItemThisTurn = false;
         this.isSilenced = false;
         this.hasDoubleMove = false;
+        this.hasUsedChaosChange = false;
     }
-
     // --- ポイント関連 ---
     public int getPoints() { return this.points; }
     public void addPoints(int amount) { this.points += amount; }
@@ -59,6 +63,11 @@ class Player {
     public boolean hasDoubleMove() { return this.hasDoubleMove; }
     public void grantDoubleMove() { this.hasDoubleMove = true; }
     public void consumeDoubleMove() { this.hasDoubleMove = false; }
+
+     // --- カオスチェンジ関連のメソッドを追加 ---
+    public boolean hasUsedChaosChange() { return this.hasUsedChaosChange; }
+    public void setUsedChaosChange() { this.hasUsedChaosChange = true; }
+    public String getOriginalAnswer() { return this.originalAnswer; }
 
 
     public Set<Character> getAllGuessedChars() {

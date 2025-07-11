@@ -157,12 +157,32 @@ public class WordleServer {
             }
 
             outA.println(finalMessageA);
-            outA.println("あなたが当てる単語は「" + ansStrA + "」でした。");
-            outA.println("相手が当てる単語は「" + ansStrB + "」でした。");
+            // Player A 自身のお題の結果表示
+            if (!playerA.getOriginalAnswer().equals(playerA.answer)) {
+                outA.println("あなたが当てる単語は当初「" + playerA.getOriginalAnswer() + "」でしたが、カオスチェンジにより「" + playerA.answer + "」に変更されました。");
+            } else {
+                outA.println("あなたが当てる単語は「" + playerA.answer + "」でした。");
+            }
+            // Player A にとっての相手のお題の結果表示
+            if (!playerB.getOriginalAnswer().equals(playerB.answer)) {
+                outA.println("相手が当てる単語は当初「" + playerB.getOriginalAnswer() + "」でしたが、カオスチェンジにより「" + playerB.answer + "」に変更されました。");
+            } else {
+                outA.println("相手が当てる単語は「" + playerB.answer + "」でした。");
+            }
 
             outB.println(finalMessageB);
-            outB.println("あなたが当てる単語は「" + ansStrB + "」でした。");
-            outB.println("相手が当てる単語は「" + ansStrA + "」でした。");
+            // Player B 自身のお題の結果表示
+            if (!playerB.getOriginalAnswer().equals(playerB.answer)) {
+                outB.println("あなたが当てる単語は当初「" + playerB.getOriginalAnswer() + "」でしたが、カオスチェンジにより「" + playerB.answer + "」に変更されました。");
+            } else {
+                outB.println("あなたが当てる単語は「" + playerB.answer + "」でした。");
+            }
+            // Player B にとっての相手のお題の結果表示
+            if (!playerA.getOriginalAnswer().equals(playerA.answer)) {
+                outB.println("相手が当てる単語は当初「" + playerA.getOriginalAnswer() + "」でしたが、カオスチェンジにより「" + playerA.answer + "」に変更されました。");
+            } else {
+                outB.println("相手が当てる単語は「" + playerA.answer + "」でした。");
+            }
 
             // 5. 接続を閉じる
             System.out.println("ゲームセッションを終了します。");
@@ -180,8 +200,6 @@ public class WordleServer {
      * @return ゲームに勝利した場合はtrue
      */
     private static boolean executePlayerTurn(Player currentPlayer, Player opponent, PrintWriter currentOut, PrintWriter opponentOut, BufferedReader currentIn, int gameCount, String playerName) throws IOException {
-        // --- 修正点: ターン開始時のサイレンス解除処理を完全に削除 ---
-
         currentOut.println("\n--- (ROUND " + (gameCount + 1) + ") " + playerName + ": あなたのターンです ---");
         opponentOut.println("\n(ROUND " + (gameCount + 1) + ") 相手のターンです。待機してください...");
 
@@ -214,7 +232,7 @@ public class WordleServer {
         currentOut.println(currentPlayer.getAnswerSheetString());
         currentOut.println("------------------------------");
 
-        // --- 修正点: ターンが終了するこのタイミングでサイレンスを解除 ---
+        // ターンが終了するこのタイミングでサイレンスを解除
         if (currentPlayer.isSilenced()) {
             currentOut.println("アイテム封印の効果が解除されました。");
             currentPlayer.setSilenced(false);
@@ -245,6 +263,12 @@ public class WordleServer {
             int itemNumber = Integer.parseInt(itemNumberStr);
             if (itemNumber > 0 && itemNumber <= shopList.size()) {
                 Item itemToUse = shopList.get(itemNumber - 1);
+
+                if (itemToUse == Item.CHAOS_CHANGE && user.hasUsedChaosChange()) {
+                    out.println("エラー: カオスチェンジは1ゲームに1回しか使用できません。");
+                    return;
+                }
+
                 if (user.getPoints() >= itemToUse.getCost()) {
                     user.usePoints(itemToUse.getCost());
                     user.consumeItemTurn();
@@ -355,6 +379,7 @@ public class WordleServer {
                     if (newWord != null && newWord.length() == WORD_SIZE && answerWordList.isInList(newWord.toLowerCase())) {
                         opponent.answer = newWord.toLowerCase();
                         out.println("お題を「" + newWord.toLowerCase() + "」に再設定しました。");
+                        user.setUsedChaosChange();
                         break;
                     }
                     out.println("エラー: その単語はリストにありません。もう一度入力してください。|PROMPT");
