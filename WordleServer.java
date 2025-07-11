@@ -37,6 +37,7 @@ public class WordleServer {
             // スレッド間で単語を受け渡すための配列
             final String[] answerWords = new String[2]; // [0] = PlayerA入力, [1] = PlayerB入力
             WordList wordList = new WordList();
+            AnswerWordList answerWordList = new AnswerWordList();
 
             // Player Aの単語入力を担当するスレッド
             Thread threadA = new Thread(() -> {
@@ -44,11 +45,11 @@ public class WordleServer {
                     outA.println("対戦相手のお題となる単語(5文字)を入力してください。");
                     while (true) {
                         String word = inA.readLine();
-                        if (word != null && wordList.isInList(word.toLowerCase())) {
+                        if (word != null && answerWordList.isInList(word.toLowerCase())) {
                             answerWords[0] = word.toLowerCase(); // Player Bが当てる単語
                             break;
                         }
-                        outA.println("エラー: その単語はリストにありません。もう一度入力してください。");
+                        outA.println("エラー: その単語はお題に設定できません。もう一度入力してください。");
                     }
                     outA.println("お題を設定しました。相手の入力を待っています...");
                 } catch (IOException e) {
@@ -62,11 +63,11 @@ public class WordleServer {
                     outB.println("対戦相手のお題となる単語(5文字)を入力してください。");
                     while (true) {
                         String word = inB.readLine();
-                        if (word != null && wordList.isInList(word.toLowerCase())) {
+                        if (word != null && answerWordList.isInList(word.toLowerCase())) {
                             answerWords[1] = word.toLowerCase(); // Player Aが当てる単語
                             break;
                         }
-                        outB.println("エラー: その単語はリストにありません。もう一度入力してください。");
+                        outB.println("エラー: その単語はお題に設定できません。もう一度入力してください。");
                     }
                     outB.println("お題を設定しました。相手の入力を待っています...");
                 } catch (IOException e) {
