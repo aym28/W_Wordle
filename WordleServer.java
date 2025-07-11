@@ -56,11 +56,13 @@ public class WordleServer {
                     outA.println("対戦相手のお題となる単語(5文字)を入力してください。|PROMPT");
                     while (true) {
                         String word = inA.readLine();
+
                         if (word != null && word.length() == WORD_SIZE && wordList.isInList(word.toLowerCase())) {
                             answerWords[0] = word.toLowerCase();
                             break;
                         }
                         outA.println("エラー: その単語はリストにありません。もう一度入力してください。|PROMPT");
+
                     }
                     outA.println("お題を設定しました。相手の入力を待っています...");
                 } catch (IOException e) {
@@ -73,6 +75,7 @@ public class WordleServer {
                     outB.println("対戦相手のお題となる単語(5文字)を入力してください。|PROMPT");
                     while (true) {
                         String word = inB.readLine();
+
                         if (word != null && word.length() == WORD_SIZE && wordList.isInList(word.toLowerCase())) {
                             answerWords[1] = word.toLowerCase();
                             break;
