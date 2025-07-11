@@ -1,10 +1,19 @@
 import java.util.Arrays;
+import java.util.Set;
+import java.util.HashSet;
 
 class Player {
     int MAX_GAME_ROUND;
     int WORD_SIZE;
     String answer;
     String[] answerSheet;
+
+    // プレイヤーの状態
+    private int points;
+    private boolean hasUsedItemThisTurn;
+    private boolean isSilenced;
+    private boolean hasDoubleMove;
+
     // コンソール用のカラーコード
     final String COLOR_GREEN = "\u001b[00;42m";
     final String COLOR_YELLOW = "\u001b[00;43m";
@@ -16,22 +25,64 @@ class Player {
         this.answer = answer;
         this.answerSheet = new String[MAX_GAME_ROUND];
         Arrays.fill(this.answerSheet, "");
+
+        this.points = 100;
+        this.hasUsedItemThisTurn = false;
+        this.isSilenced = false;
+        this.hasDoubleMove = false;
     }
 
-    /**
-     * 回答シートの状態を、色付けされた文字列として生成して返す
-     * @return 回答シートの文字列
-     */
+    // --- ポイント関連 ---
+    public int getPoints() { return this.points; }
+    public void addPoints(int amount) { this.points += amount; }
+    public boolean usePoints(int amount) {
+        if (this.points >= amount) {
+            this.points -= amount;
+            return true;
+        }
+        return false;
+    }
+
+    // --- ターン状態関連 ---
+    public boolean canUseItem() { return !this.hasUsedItemThisTurn && !this.isSilenced; }
+    public void consumeItemTurn() { this.hasUsedItemThisTurn = true; }
+    public void setSilenced(boolean silenced) { this.isSilenced = silenced; }
+    
+    // --- サイレンス状態か確認する ---
+    public boolean isSilenced() { return this.isSilenced; }
+
+    public void resetTurnState() {
+        this.hasUsedItemThisTurn = false;
+    }
+
+    // --- ダブルムーブ関連 ---
+    public boolean hasDoubleMove() { return this.hasDoubleMove; }
+    public void grantDoubleMove() { this.hasDoubleMove = true; }
+    public void consumeDoubleMove() { this.hasDoubleMove = false; }
+
+
+    public Set<Character> getAllGuessedChars() {
+        Set<Character> guessedChars = new HashSet<>();
+        for (String word : answerSheet) {
+            if (!word.isEmpty()) {
+                for (char c : word.toCharArray()) {
+                    guessedChars.add(c);
+                }
+            }
+        }
+        return guessedChars;
+    }
+
     public String getAnswerSheetString() {
         final boolean[] checked = new boolean[WORD_SIZE];
-        final int[] result = new int[WORD_SIZE];        //1:green, 2:yellow, 0:glay    //enum型の方がいいかも？
+        final int[] result = new int[WORD_SIZE];
         StringBuilder sb = new StringBuilder();
 
         for (String word : this.answerSheet) {
             if (word.equals("")) {
                 sb.append(" _ _ _ _ _");
             } else {
-                for (int i = 0; i < WORD_SIZE; i++) {       //初期化、緑判定
+                for (int i = 0; i < WORD_SIZE; i++) {
                     checked[i] = false;
                     result[i] = 0;
                     if (word.charAt(i) == this.answer.charAt(i)) {
@@ -39,18 +90,14 @@ class Player {
                         result[i] = 1;
                     }
                 }
-                for (int i = 0; i < WORD_SIZE; i++) {       //黄判定、灰判定
+                for (int i = 0; i < WORD_SIZE; i++) {
                     if (result[i] == 1) continue;
-
-                    boolean allfound = false;       //答えの単語にも含まれるこの文字は、答えでの登場回数分だけ予測の単語で見つかった
                     for (int j = 0; j < WORD_SIZE; j++) {
-                        if (word.charAt(i) == this.answer.charAt(j) && !checked[j]) {
-                            checked[i] = true;
+                        if (i != j && result[j] != 1 && !checked[j] && word.charAt(i) == this.answer.charAt(j)) {
+                            checked[j] = true;
                             result[i] = 2;
-                            allfound = true;
                             break;
                         }
-                        if (!allfound) result[i] = 0;
                     }
                 }
                 for (int i = 0; i < WORD_SIZE; i++) {
@@ -58,9 +105,11 @@ class Player {
                     switch(result[i]) {
                         case 1:
                             sb.append(COLOR_GREEN).append(word.charAt(i)).append(COLOR_END);
+                            addPoints(20);
                             break;
                         case 2:
                             sb.append(COLOR_YELLOW).append(word.charAt(i)).append(COLOR_END);
+                            addPoints(10);
                             break;
                         default:
                             sb.append(word.charAt(i));
@@ -68,26 +117,10 @@ class Player {
                     }
                 }
             }
-            sb.append("\n"); // 各行の終わりに改行を追加
+            sb.append("\n");
         }
         return sb.toString();
     }
-
-    /**
-     * プレイヤーの回答を記録する
-     * @param word 入力された単語
-     * @param gameCount 現在のラウンド数
-     */
-    public void pushAnswer(String word, int gameCount) {
-        this.answerSheet[gameCount] = word;
-    }
-
-    /**
-     * 入力された単語が正解かどうかを判定する
-     * @param word 入力された単語
-     * @return 正解ならtrue
-     */
-    public boolean judgeAnswer(String word) {
-        return (word.equals(this.answer));
-    }
+    public void pushAnswer(String word, int gameCount) { this.answerSheet[gameCount] = word; }
+    public boolean judgeAnswer(String word) { return (word.equals(this.answer)); }
 }

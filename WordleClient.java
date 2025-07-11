@@ -25,10 +25,16 @@ public class WordleClient {
             String serverMessage;
             // サーバーからのメッセージを待ち受け、表示し続けるループ
             while ((serverMessage = in.readLine()) != null) {
-                System.out.println(serverMessage);
 
-                // もしサーバーから入力要求が来たら、ユーザーの入力を待って送信する
-                if (serverMessage.contains("入力してください")) {
+                String[] parts = serverMessage.split("\\|", 2);
+                // メッセージ内の "\n" を実際の改行に置換して表示
+                String displayMessage = parts[0].replace("\\n", "\n");
+                String command = (parts.length > 1) ? parts[1] : "";
+
+                System.out.println(displayMessage);
+
+                // もしサーバーから入力要求の"合図"が来ていたら、ユーザーの入力を待って送信する
+                if ("PROMPT".equals(command)) {
                     String userInput = stdIn.nextLine();
                     out.println(userInput);
                 }
@@ -38,6 +44,9 @@ public class WordleClient {
                     // 最終結果を2行分受信して表示
                     System.out.println(in.readLine());
                     System.out.println(in.readLine());
+                    
+                    System.out.println("\n何かキーを押して終了します...");
+                    stdIn.nextLine();
                     break;
                 }
             }
