@@ -21,6 +21,9 @@ public class WordleServer {
     private static BufferedReader inA;
     private static BufferedReader inB;
     private static WordList wordList;
+    // --- 修正点: AnswerWordListもクラス変数として定義 ---
+    private static AnswerWordList answerWordList;
+
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(PORT);
@@ -50,19 +53,20 @@ public class WordleServer {
             // 1. 各プレイヤーにお題となる単語を【並行して】決めさせる
             final String[] answerWords = new String[2];
             wordList = new WordList();
+            // --- 修正点: AnswerWordListのオブジェクトをここで生成する ---
+            answerWordList = new AnswerWordList();
 
             Thread threadA = new Thread(() -> {
                 try {
                     outA.println("対戦相手のお題となる単語(5文字)を入力してください。|PROMPT");
                     while (true) {
                         String word = inA.readLine();
-
+                        // --- 修正点: 正しくanswerWordList変数を参照する ---
                         if (word != null && word.length() == WORD_SIZE && answerWordList.isInList(word.toLowerCase())) {
                             answerWords[0] = word.toLowerCase();
                             break;
                         }
                         outA.println("エラー: その単語はお題に設定できません。もう一度入力してください。|PROMPT");
-
                     }
                     outA.println("お題を設定しました。相手の入力を待っています...");
                 } catch (IOException e) {
@@ -72,10 +76,10 @@ public class WordleServer {
 
             Thread threadB = new Thread(() -> {
                 try {
-                    outB.println("対戦相手のお題となる単語(5字)を入力してください。|PROMPT");
+                    outB.println("対戦相手のお題となる単語(5文字)を入力してください。|PROMPT");
                     while (true) {
                         String word = inB.readLine();
-
+                        // --- 修正点: 正しくanswerWordList変数を参照する ---
                         if (word != null && word.length() == WORD_SIZE && answerWordList.isInList(word.toLowerCase())) {
                             answerWords[1] = word.toLowerCase();
                             break;
@@ -109,7 +113,7 @@ public class WordleServer {
             outA.println("------------------------------\nGame Start");
             outB.println("------------------------------\nGame Start");
 
-            // 3. メインゲームループ
+            // 3. メインゲームループ (ここから下のコードは変更ありません)
             for (int gameCount = 0; gameCount < MAX_GAME_ROUND; gameCount++) {
                 playerA.addPoints(10);
                 playerA.resetTurnState();
