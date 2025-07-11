@@ -1,10 +1,9 @@
-package gui;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Scanner;
 import javax.swing.*;
 import javax.swing.text.*;
+import java.awt.geom.AffineTransform;
 
 public class W_Wordle_UI {
     GameFrame k;
@@ -47,7 +46,7 @@ public class W_Wordle_UI {
         frame.add(buttonPanel, gbc);
 
         // --- アイコン設定 ---
-        ImageIcon icon = new ImageIcon("res/icon.png"); // 相対/絶対パス
+        ImageIcon icon = new ImageIcon("icon.png"); // 相対/絶対パス
         frame.setIconImage(icon.getImage());
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -124,7 +123,7 @@ public class W_Wordle_UI {
 
 
 class LogoPanel extends JPanel {
-    Image img = Toolkit.getDefaultToolkit().getImage("res/WWlogo.png");
+    Image img = Toolkit.getDefaultToolkit().getImage("WWlogo.png");
     LogoPanel() {
         this.setBackground(Color.white);
     }
@@ -242,7 +241,7 @@ class WordsArea extends JPanel {
         setLayout(new BorderLayout());
 
         // ラベルを上に追加
-        JLabel label = new JLabel("Waseda Wordle", SwingConstants.CENTER);
+        JLabel label = new JLabel("入力したWord", SwingConstants.CENTER);
         add(label, BorderLayout.NORTH);
 
         // WordPanelを並べるパネル
@@ -266,6 +265,7 @@ class WordsArea extends JPanel {
         contentPanel.add(wp);
         contentPanel.revalidate();
         contentPanel.repaint();
+        wp.flipWord();
     }
 }
 
@@ -321,12 +321,10 @@ class KeyBoardPanel extends JPanel {
         }
 
         // 右半分を隠すおじゃま機能 booleanをいじるメソッドを用意する
-        isRightHidden = true;
         if(isRightHidden) {
             g.setColor(Color.BLACK);
             g.fillRect(init_spacing + 195,0,220,200);
         }
-        isLeftHidden = true;
         if(isLeftHidden) {
             g.setColor(Color.RED);
             g.fillRect(init_spacing - 15,0,220,200);
@@ -341,7 +339,7 @@ class KeyBoardPanel extends JPanel {
     }
 
     // キーボードの色リストを更新するメソッド．
-    // updateCol('A',Color.yellow); でAの表示色を黄色にする
+    // updateCol('A',Color.myyellow); でAの表示色を黄色にする
     void updateCol(char c, Color col) {
         usedCharCol[(int) c - (int) 'A'] = col;
         frame.repaint();
@@ -509,60 +507,130 @@ class TextPanel extends JPanel {
 class WordPanel extends JPanel {
     Word word = new Word("00000");
     boolean[] isColored = new boolean[GLOBALVALS.wordLen];
+    Color myyellow = new Color(255, 204, 0);
+
+    // animation
+    float[] flipProgress = new float[GLOBALVALS.wordLen]; // 0.0〜1.0
+    boolean[] flipped = new boolean[GLOBALVALS.wordLen];  // 裏返し済みか
+    Timer timer;
+
     public WordPanel(Word word_in){
         word = word_in;
-        this.setPreferredSize(new Dimension(400,25));
+        this.setPreferredSize(new Dimension(400, 70));
         this.setBackground(Color.GRAY);
+        for (int i = 0; i < GLOBALVALS.wordLen; i++) {
+            flipProgress[i] = 0f;
+            flipped[i] = false;
+        }
     }
-    public void paintComponent(Graphics g) {
-		super.paintComponent(g);
 
-        // 各文字の横サイズと間隔
+    @Override
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+
         int boxSize = 50;
         int spacing = 10;
         int windowWidth = getWidth();
         int totalWidth = GLOBALVALS.wordLen * (boxSize + spacing) - spacing;
-
-        // パネルの中央にくるようにX座標を調整
         int x0 = (windowWidth - totalWidth) / 2;
-        int y0 = 0;
-        
 
-        for(int i = 0; i < GLOBALVALS.wordLen; i++){
-            switch(word.isCorrect[i]) {
-                case -1:
-                    g.setColor(Color.GRAY);
-                    break;
-                case 0:
-                    g.setColor(Color.green);
-                    break;
-                case 1:
-                    g.setColor(Color.yellow);
-                    break;
-                default:
-                    System.out.println("Error val in isCorrect: i=" + i + "isCorrect=" + word.isCorrect[i]);
-                    System.exit(1);
-                    break;
+        for (int i = 0; i < GLOBALVALS.wordLen; i++) {
+            int x = x0 + i * (boxSize + spacing);
+            int y = 10;
+
+            float progress = flipProgress[i];
+            double scale = Math.cos(Math.PI * progress); // 1→0→-1
+
+            // 背面の色へ切り替えるタイミング
+            if (progress < 0.5) {
+                g2.setColor(Color.DARK_GRAY); // 背面
+            } else {
+                switch (word.isCorrect[i]) {
+                    case -1: g2.setColor(Color.GRAY); break;
+                    case 0: g2.setColor(Color.GREEN); break;
+                    case 1: g2.setColor(myyellow); break;
+                    default: g2.setColor(Color.BLACK); break;
+                }
             }
-            g.fillRect(x0 + 60 * i,0+10,50,50);
-            g.setColor(Color.white);
-            Font font = new Font("ＭＳ 明朝", Font.BOLD, 32);
-            g.setFont(font);
-            drawStringCenter(g,String.valueOf(word.char_array[i]),x0 + 60 * i + 25,25+10);
+
+            // 描画用 transform の保存
+            AffineTransform old = g2.getTransform();
+
+            // スケーリング中心位置に合わせる
+            g2.translate(x + boxSize / 2, y + boxSize / 2);
+            g2.scale(scale, 1.0); // 横方向スケーリング
+            g2.translate(-(x + boxSize / 2), -(y + boxSize / 2));
+
+            g2.fillRect(x, y, boxSize, boxSize);
+
+            // 文字の描画（反転時は描かない）
+            if (progress < 0.6) {
+                // 背面なので文字は描かない
+            } else {
+                // ここで scale が負の場合に文字が反転しないように修正
+                // scaleが負の場合、Graphics2Dはすでに反転しているため、
+                // 文字の描画自体を反転させる必要がある
+                // もしくは、scaleを絶対値にして再適用する
+                // 最も簡単なのは、transformをリセットして、文字は別途描画すること
+                g2.setTransform(old); // ここで一旦transformをリセットする
+
+                g2.setColor(Color.white);
+                Font font = new Font("ＭＳ 明朝", Font.BOLD, 32);
+                g2.setFont(font);
+                // 文字を中央に描画
+                drawStringCenter(g2, String.valueOf(word.char_array[i]), x + boxSize / 2, y + boxSize / 2);
+            }
+
+            // transform を戻す
+            g2.setTransform(old); // 文字を描画した後、元のtransformに戻す
         }
-	}
+    }
+
 
     public static void drawStringCenter(Graphics g,String text,int x,int y){
         FontMetrics fm = g.getFontMetrics();
         Rectangle rectText = fm.getStringBounds(text, g).getBounds();
         x=x-rectText.width/2;
         y=y-rectText.height/2+fm.getMaxAscent();
-        
         g.drawString(text, x, y);
     }
+    
     public void flipWord() {
+        timer = new Timer(16, null); // 約60FPS
 
-        }
+        timer.addActionListener(new ActionListener() {
+            int frameCount = 0;
+            final int maxFrames = 30; // 30フレームで1文字のアニメーション
+            int currentIndex = 0;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (currentIndex >= GLOBALVALS.wordLen) {
+                    timer.stop();
+                    return;
+                }
+
+                flipProgress[currentIndex] = (float) frameCount / maxFrames;
+
+                if (flipProgress[currentIndex] >= 0.5 && !flipped[currentIndex]) {
+                    flipped[currentIndex] = true;
+                    // このタイミングで isCorrect を適用（裏返る瞬間）
+                    // 特に何も処理しないでも isCorrect[] を使って描画してるならOK
+                }
+
+                repaint();
+
+                frameCount++;
+                if (frameCount > maxFrames) {
+                    frameCount = 0;
+                    currentIndex++;
+                }
+            }
+        });
+
+        timer.start();
+    }
 }
 
 class Word {
