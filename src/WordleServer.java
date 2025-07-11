@@ -21,9 +21,7 @@ public class WordleServer {
     private static BufferedReader inA;
     private static BufferedReader inB;
     private static WordList wordList;
-    // --- 修正点: AnswerWordListもクラス変数として定義 ---
     private static AnswerWordList answerWordList;
-
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(PORT);
@@ -53,7 +51,6 @@ public class WordleServer {
             // 1. 各プレイヤーにお題となる単語を【並行して】決めさせる
             final String[] answerWords = new String[2];
             wordList = new WordList();
-            // --- 修正点: AnswerWordListのオブジェクトをここで生成する ---
             answerWordList = new AnswerWordList();
 
             Thread threadA = new Thread(() -> {
@@ -61,7 +58,6 @@ public class WordleServer {
                     outA.println("対戦相手のお題となる単語(5文字)を入力してください。|PROMPT");
                     while (true) {
                         String word = inA.readLine();
-                        // --- 修正点: 正しくanswerWordList変数を参照する ---
                         if (word != null && word.length() == WORD_SIZE && answerWordList.isInList(word.toLowerCase())) {
                             answerWords[0] = word.toLowerCase();
                             break;
@@ -79,7 +75,6 @@ public class WordleServer {
                     outB.println("対戦相手のお題となる単語(5文字)を入力してください。|PROMPT");
                     while (true) {
                         String word = inB.readLine();
-                        // --- 修正点: 正しくanswerWordList変数を参照する ---
                         if (word != null && word.length() == WORD_SIZE && answerWordList.isInList(word.toLowerCase())) {
                             answerWords[1] = word.toLowerCase();
                             break;
@@ -113,7 +108,7 @@ public class WordleServer {
             outA.println("------------------------------\nGame Start");
             outB.println("------------------------------\nGame Start");
 
-            // 3. メインゲームループ (ここから下のコードは変更ありません)
+            // 3. メインゲームループ
             for (int gameCount = 0; gameCount < MAX_GAME_ROUND; gameCount++) {
                 playerA.addPoints(10);
                 playerA.resetTurnState();
@@ -185,11 +180,7 @@ public class WordleServer {
      * @return ゲームに勝利した場合はtrue
      */
     private static boolean executePlayerTurn(Player currentPlayer, Player opponent, PrintWriter currentOut, PrintWriter opponentOut, BufferedReader currentIn, int gameCount, String playerName) throws IOException {
-        // ターン開始時にサイレンス状態をチェックし、解除する
-        if (currentPlayer.isSilenced()) {
-            currentOut.println("アイテム封印の効果が解除されました。");
-            currentPlayer.setSilenced(false); // フラグをfalseに戻す
-        }
+        // --- 修正点: ターン開始時のサイレンス解除処理を完全に削除 ---
 
         currentOut.println("\n--- (ROUND " + (gameCount + 1) + ") " + playerName + ": あなたのターンです ---");
         opponentOut.println("\n(ROUND " + (gameCount + 1) + ") 相手のターンです。待機してください...");
@@ -197,6 +188,10 @@ public class WordleServer {
         String guess;
         while (true) {
             currentOut.println("ポイント: " + currentPlayer.getPoints());
+            // サイレンス状態ならメッセージを表示
+            if (currentPlayer.isSilenced()) {
+                currentOut.println("【アイテム封印中】");
+            }
             currentOut.println("推測する単語を入力してください。('item'でアイテムストア)|PROMPT");
 
             String input = currentIn.readLine();
@@ -218,6 +213,12 @@ public class WordleServer {
         currentPlayer.pushAnswer(guess, gameCount);
         currentOut.println(currentPlayer.getAnswerSheetString());
         currentOut.println("------------------------------");
+
+        // --- 修正点: ターンが終了するこのタイミングでサイレンスを解除 ---
+        if (currentPlayer.isSilenced()) {
+            currentOut.println("アイテム封印の効果が解除されました。");
+            currentPlayer.setSilenced(false);
+        }
 
         return currentPlayer.judgeAnswer(guess);
     }
@@ -244,12 +245,9 @@ public class WordleServer {
             int itemNumber = Integer.parseInt(itemNumberStr);
             if (itemNumber > 0 && itemNumber <= shopList.size()) {
                 Item itemToUse = shopList.get(itemNumber - 1);
-                // ポイントが足りるかチェック
                 if (user.getPoints() >= itemToUse.getCost()) {
-                    // ポイントを消費し、アイテム使用権を消費する
                     user.usePoints(itemToUse.getCost());
                     user.consumeItemTurn();
-                    // アイテム効果を実行
                     executeItemEffect(user, opponent, itemToUse, out, in);
                 } else {
                     out.println("ポイントが足りません。");
@@ -273,24 +271,24 @@ public class WordleServer {
                 out.println("--------------------");
                 break;
             case TENKEI_PIECE: {
-                Set<Character> opponentAnswerChars = opponent.answer.chars().mapToObj(c -> (char) c).collect(Collectors.toSet());
+                Set<Character> userAnswerChars = user.answer.chars().mapToObj(c -> (char) c).collect(Collectors.toSet());
                 Set<Character> userGuessedChars = user.getAllGuessedChars();
-                opponentAnswerChars.removeAll(userGuessedChars);
+                userAnswerChars.removeAll(userGuessedChars);
 
-                if (opponentAnswerChars.isEmpty()) {
+                if (userAnswerChars.isEmpty()) {
                     out.println("結果: 新しく開示できる文字はありませんでした。");
                 } else {
-                    Character revealedChar = new ArrayList<>(opponentAnswerChars).get(0);
-                    out.println("結果: 「" + revealedChar + "」が答えに含まれています。(黄色)");
+                    Character revealedChar = new ArrayList<>(userAnswerChars).get(0);
+                    out.println("結果: 「" + revealedChar + "」があなたの答えに含まれています。(黄色)");
                 }
                 break;
             }
             case TENKEI_WORD: {
                 List<Integer> unknownGreenIndexes = new ArrayList<>();
-                for (int i = 0; i < opponent.answer.length(); i++) {
+                for (int i = 0; i < user.answer.length(); i++) {
                     boolean isAlreadyGreen = false;
                     for(String guess : user.answerSheet) {
-                        if (!guess.isEmpty() && guess.length() > i && guess.charAt(i) == opponent.answer.charAt(i)) {
+                        if (!guess.isEmpty() && guess.length() > i && guess.charAt(i) == user.answer.charAt(i)) {
                             isAlreadyGreen = true;
                             break;
                         }
@@ -304,8 +302,8 @@ public class WordleServer {
                     out.println("結果: 新しく開示できる緑色の文字はありませんでした。");
                 } else {
                     int revealedIndex = unknownGreenIndexes.get(0);
-                    char revealedChar = opponent.answer.charAt(revealedIndex);
-                    out.println("結果: " + (revealedIndex + 1) + "文字目は「" + revealedChar + "」です。(緑色)");
+                    char revealedChar = user.answer.charAt(revealedIndex);
+                    out.println("結果: あなたの答えの" + (revealedIndex + 1) + "文字目は「" + revealedChar + "」です。(緑色)");
                 }
                 break;
             }
@@ -323,12 +321,12 @@ public class WordleServer {
                 String vowels = "aiueo";
                 Set<Character> foundChars = new HashSet<>();
                 if ("1".equals(choice)) {
-                    for (char c : opponent.answer.toCharArray()) {
+                    for (char c : user.answer.toCharArray()) {
                         if (vowels.indexOf(c) != -1) foundChars.add(c);
                     }
                     out.println("結果(母音): " + foundChars);
                 } else if ("2".equals(choice)) {
-                    for (char c : opponent.answer.toCharArray()) {
+                    for (char c : user.answer.toCharArray()) {
                         if (vowels.indexOf(c) == -1) foundChars.add(c);
                     }
                     out.println("結果(子音): " + foundChars);
@@ -341,10 +339,10 @@ public class WordleServer {
                 out.println("調べたい文字を1文字入力してください。|PROMPT");
                 String charToAsk = in.readLine();
                 if (charToAsk != null && charToAsk.length() == 1) {
-                    if (opponent.answer.contains(charToAsk.toLowerCase())) {
-                        out.println("結果: その文字は相手の単語に【含まれています】(黄色)");
+                    if (user.answer.contains(charToAsk.toLowerCase())) {
+                        out.println("結果: その文字はあなたの答えに【含まれています】(黄色)");
                     } else {
-                        out.println("結果: その文字は相手の単語に【含まれていません】(黒)");
+                        out.println("結果: その文字はあなたの答えに【含まれていません】(黒)");
                     }
                 } else {
                     out.println("入力が無効です。");
@@ -354,7 +352,7 @@ public class WordleServer {
                 out.println("相手の新しいお題となる単語(5文字)を入力してください。|PROMPT");
                 while (true) {
                     String newWord = in.readLine();
-                    if (newWord != null && newWord.length() == WORD_SIZE && wordList.isInList(newWord.toLowerCase())) {
+                    if (newWord != null && newWord.length() == WORD_SIZE && answerWordList.isInList(newWord.toLowerCase())) {
                         opponent.answer = newWord.toLowerCase();
                         out.println("お題を「" + newWord.toLowerCase() + "」に再設定しました。");
                         break;
