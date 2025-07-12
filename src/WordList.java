@@ -9,7 +9,7 @@ public class WordList {
 
   WordList() {
     words = new HashMap<>();
-    try (BufferedReader textFile = new BufferedReader(new FileReader("res/wordlist.txt"))){
+    try (BufferedReader textFile = new BufferedReader(new FileReader("../res/wordlist.txt"))){
       String line;
       while ((line = textFile.readLine()) != null) {
         words.put(line, true);

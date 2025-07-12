@@ -4,6 +4,8 @@ import java.util.Scanner;
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.geom.AffineTransform;
+import java.util.List;
+import java.util.ArrayList;
 
 public class W_Wordle_UI {
     GameFrame k;
@@ -46,7 +48,7 @@ public class W_Wordle_UI {
         frame.add(buttonPanel, gbc);
 
         // --- アイコン設定 ---
-        ImageIcon icon = new ImageIcon("icon.png"); // 相対/絶対パス
+        ImageIcon icon = new ImageIcon("../res/WWicon.png"); // 相対/絶対パス
         frame.setIconImage(icon.getImage());
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -123,7 +125,7 @@ public class W_Wordle_UI {
 
 
 class LogoPanel extends JPanel {
-    Image img = Toolkit.getDefaultToolkit().getImage("WWlogo.png");
+    Image img = Toolkit.getDefaultToolkit().getImage("../res/WWlogo.png");
     LogoPanel() {
         this.setBackground(Color.white);
     }
@@ -233,43 +235,6 @@ class GameFrame {
         });
     }
 }
-
-class WordsArea extends JPanel {
-    private JPanel contentPanel;
-
-    WordsArea() {
-        setLayout(new BorderLayout());
-
-        // ラベルを上に追加
-        JLabel label = new JLabel("入力したWord", SwingConstants.CENTER);
-        add(label, BorderLayout.NORTH);
-
-        // WordPanelを並べるパネル
-        contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBackground(Color.GRAY);
-
-        // スクロール対応（スクロール非表示でもOK）
-        JScrollPane scrollPane = new JScrollPane(contentPanel);
-        scrollPane.setBorder(null);
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-
-        add(scrollPane, BorderLayout.CENTER);
-    }
-
-    public void addWordPanel(WordPanel wp) {
-        // 高さが 0 のままだと表示されないので明示的にサイズを設定
-        wp.setMaximumSize(new Dimension(400, 70));  // 横幅制限あり
-        wp.setPreferredSize(new Dimension(400, 70)); // 必須
-        wp.setAlignmentX(Component.CENTER_ALIGNMENT); // 中央寄せ（任意）
-        contentPanel.add(wp);
-        contentPanel.revalidate();
-        contentPanel.repaint();
-        wp.flipWord();
-    }
-}
-
-
 
 class KeyBoardPanel extends JPanel {
     Color[] usedCharCol = new Color[100];
@@ -503,10 +468,57 @@ class TextPanel extends JPanel {
     }
 }
 
+class WordsArea extends JPanel {
+    private JPanel contentPanel;
+
+    // WordPanelのインスタンスを管理するためのリスト
+    private List<WordPanel> wordPanels = new ArrayList<>();
+
+    WordsArea() {
+        setLayout(new BorderLayout());
+
+        // ラベルを上に追加
+        JLabel label = new JLabel("入力したWord", SwingConstants.CENTER);
+        add(label, BorderLayout.NORTH);
+
+        // WordPanelを並べるパネル
+        contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(Color.GRAY);
+
+        // スクロール対応（スクロール非表示でもOK）
+        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        scrollPane.setBorder(null);
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+
+        add(scrollPane, BorderLayout.CENTER);
+    }
+
+    public void addWordPanel(WordPanel wp) {
+        // インスタンスリストに追加
+        wordPanels.add(wp);
+
+        // 高さが 0 のままだと表示されないので明示的にサイズを設定
+        wp.setMaximumSize(new Dimension(400, 70));  // 横幅制限あり
+        wp.setPreferredSize(new Dimension(400, 70)); // 必須
+        wp.setAlignmentX(Component.CENTER_ALIGNMENT); // 中央寄せ（任意）
+        contentPanel.add(wp);
+        contentPanel.revalidate();
+        contentPanel.repaint();
+        wp.flipWord();
+    }
+
+    // WordPanelを全て黒くする
+    public void makeAllBlack() {
+        for (WordPanel wp : wordPanels) {
+            wp.setAllColorBlack();
+        }
+    }
+}
+
 // Word1つが表示されるエリアを作る
 class WordPanel extends JPanel {
-    Word word = new Word("00000");
-    boolean[] isColored = new boolean[GLOBALVALS.wordLen];
+    Word word;
     Color myyellow = new Color(255, 204, 0);
 
     // animation
@@ -522,6 +534,14 @@ class WordPanel extends JPanel {
             flipProgress[i] = 0f;
             flipped[i] = false;
         }
+    }
+
+    public void setAllColorBlack() {    // wordPanelの5文字すべてを黒くする
+        // wordの正誤判定をすべて黒設定して再描画すればいけそう
+        for(int i = 0; i < GLOBALVALS.wordLen; i++) {
+            word.isCorrect[i] = 2;
+        }
+        repaint();
     }
 
     @Override
@@ -678,4 +698,5 @@ class ResultDialog extends JDialog {
 
 class GLOBALVALS {
     public static int wordLen = 5;
+    public static boolean isEdit = true;    // 開発者向けオプション
 }
