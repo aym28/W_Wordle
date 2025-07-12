@@ -204,6 +204,13 @@ class GameFrame {
         gbcFrame.fill = GridBagConstraints.BOTH;
         frame.add(panel, gbcFrame);
 
+        // --- メニューバー(開発者向け) ---
+        if(GLOBALVALS.isEdit) {
+            MenuPanel menuPanel = new MenuPanel();
+            JMenuBar menuBar = menuPanel.createMenuBar(wordsArea);
+            frame.setJMenuBar(menuBar);
+        }
+
         // --- フレーム設定 ---
         frame.setSize(450, 500);
         frame.setVisible(true);
@@ -327,6 +334,37 @@ class KeyBoardPanel extends JPanel {
         x = x - rectText.width / 2;
         y = y - rectText.height / 2 + fm.getMaxAscent();
         g.drawString(text, x, y);
+    }
+}
+
+class MenuPanel {
+    WordsArea wordsArea;
+    
+    public MenuPanel() {
+    }
+
+    public JMenuBar createMenuBar(WordsArea wordsArea) {
+        this.wordsArea = wordsArea;
+
+        JMenuBar menuBar = new JMenuBar();
+        int menuFontSize = 12;
+        JMenu editScript = new JMenu("開発者モード");
+        editScript.setFont(new Font("ＭＳ ゴシック", Font.PLAIN, menuFontSize));
+        JMenu actionMenu = new JMenu("アイテム");
+        actionMenu.setFont(new Font("ＭＳ ゴシック", Font.PLAIN, menuFontSize));
+
+        JMenuItem blackOut = new JMenuItem("ブラックアウト");
+        blackOut.addActionListener(e -> blackOut());
+
+        menuBar.add(editScript);
+        actionMenu.add(blackOut);
+        menuBar.add(actionMenu);
+
+        return menuBar;
+    }
+
+    public void blackOut() {
+        wordsArea.makeAllBlack();
     }
 }
 
