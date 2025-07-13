@@ -54,13 +54,13 @@ public class W_Wordle_UI {
 
         // --- ボタンパネル ---
         JPanel buttonPanel = new JPanel();
-        JButton b = new JButton("開始");
+        JButton b = new JButton("開始(非接続)");
         JButton result_dbg = new JButton("勝敗画面開発");
         Listener listener = new Listener(frame, b);
         WinListener winl = new WinListener(frame, result_dbg);
         result_dbg.addActionListener(winl);
         b.addActionListener(listener);
-        //buttonPanel.add(b);
+        buttonPanel.add(b);
         buttonPanel.add(result_dbg);
 
         gbc.gridx = 0;
@@ -210,7 +210,6 @@ class LogoPanel extends JPanel {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        // 真ん中に寄せたいなぁ 2025/7/9
         g.drawImage(img, 5, 5, 430, 50, this);
     } 
 }

@@ -1,19 +1,18 @@
 import java.io.*;
 import java.net.*;
-import java.util.Scanner;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class WordleClientThread extends Thread {
     private String host;
     private int port;
-    private Consumer<String> displayCallback; // メッセージ受信用コールバック
-    private Supplier<String> inputSupplier;   // 入力用コールバック
+    private Consumer<String> messageHandler;
+    private Supplier<String> inputSupplier;
 
-    public WordleClientThread(String host, int port, Consumer<String> displayCallback, Supplier<String> inputSupplier) {
+    public WordleClientThread(String host, int port, Consumer<String> messageHandler, Supplier<String> inputSupplier) {
         this.host = host;
         this.port = port;
-        this.displayCallback = displayCallback;
+        this.messageHandler = messageHandler;
         this.inputSupplier = inputSupplier;
     }
 
@@ -21,30 +20,31 @@ public class WordleClientThread extends Thread {
     public void run() {
         try (
             Socket socket = new Socket(host, port);
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+            PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true)
         ) {
-            String serverMessage;
-            while ((serverMessage = in.readLine()) != null) {
-                String[] parts = serverMessage.split("\\|", 2);
-                String displayMessage = parts[0].replace("\\n", "\n");
-                String command = (parts.length > 1) ? parts[1] : "";
+            String line;
+            while ((line = in.readLine()) != null) {
+                // PROMPTがついたら入力を促す
+                if (line.endsWith("|PROMPT")) {
+                    String promptMessage = line.replace("|PROMPT", "").trim();
 
-                displayCallback.accept(displayMessage);
+                    // UIスレッドで入力を取得する
+                    String userInput = inputSupplier.get();  // 例: JOptionPane.showInputDialog(...)
+                    if (userInput != null && !userInput.trim().isEmpty()) {
+                        out.println(userInput.trim());
+                    } else {
+                        out.println("");  // 空文字列も送る（キャンセルされた場合）
+                    }
 
-                if ("PROMPT".equals(command)) {
-                    String userInput = inputSupplier.get();
-                    out.println(userInput);
-                }
-
-                if (serverMessage.contains("勝利") || serverMessage.contains("負け") || serverMessage.contains("引き分け")) {
-                    displayCallback.accept(in.readLine());
-                    displayCallback.accept(in.readLine());
-                    break;
+                } else {
+                    // 通常メッセージ表示
+                    messageHandler.accept(line);
                 }
             }
         } catch (IOException e) {
-            displayCallback.accept("エラー: " + e.getMessage());
+            e.printStackTrace();
+            messageHandler.accept("サーバとの接続中にエラーが発生しました。");
         }
     }
 }
