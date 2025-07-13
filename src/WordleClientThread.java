@@ -4,12 +4,14 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class WordleClientThread extends Thread {
+    W_Wordle_UI ui;
     private String host;
     private int port;
     private Consumer<String> messageHandler;
     private Supplier<String> inputSupplier;
 
-    public WordleClientThread(String host, int port, Consumer<String> messageHandler, Supplier<String> inputSupplier) {
+    public WordleClientThread(W_Wordle_UI ui, String host, int port, Consumer<String> messageHandler, Supplier<String> inputSupplier) {
+        this.ui = ui;
         this.host = host;
         this.port = port;
         this.messageHandler = messageHandler;
@@ -25,6 +27,13 @@ public class WordleClientThread extends Thread {
         ) {
             String line;
             while ((line = in.readLine()) != null) {
+
+                // メッセージ"Game Start"を受け取ったらゲーム画面に移行する
+                if(line.contains("Game Start")) {
+                    ui.startGame();
+                    System.out.println("ゲームを開始する処理");
+                }
+
                 // PROMPTがついたら入力を促す
                 if (line.endsWith("|PROMPT")) {
                     String promptMessage = line.replace("|PROMPT", "").trim();

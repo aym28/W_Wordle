@@ -9,10 +9,11 @@ import java.util.ArrayList;
 
 public class W_Wordle_UI {
     GameFrame k;
+    JFrame frame;
     public static int PORT = 8080;
 
     public W_Wordle_UI() {
-        JFrame frame = new JFrame("W_Wordle");
+        frame = new JFrame("W_Wordle");
 
         // --- GridBagLayoutに変更 ---
         frame.setLayout(new GridBagLayout());
@@ -81,7 +82,7 @@ public class W_Wordle_UI {
         JButton connectButton = new JButton("接続");
         connectButton.addActionListener(e -> {
             WordleClientThread clientThread = new WordleClientThread(
-                "localhost", PORT,
+                this, "localhost", PORT,
                 msg -> SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, msg)),
                 () -> JOptionPane.showInputDialog(frame, "サーバーからの入力要求です。5文字の単語を入力してください:")
             );
@@ -128,6 +129,13 @@ public class W_Wordle_UI {
                 }
             }
         });
+    }
+
+    public void startGame() {
+        frame.getContentPane().removeAll();
+        k = new GameFrame(frame);
+        frame.revalidate();
+        frame.repaint();
     }
 
     // 接続開始ボタンのリスナー（開始ボタンはGameFrameへ切り替え）
