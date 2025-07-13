@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 public class W_Wordle_UI {
     GameFrame k;
+    public static int PORT = 8080;
 
     public W_Wordle_UI() {
         JFrame frame = new JFrame("W_Wordle");
@@ -31,29 +32,75 @@ public class W_Wordle_UI {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         frame.add(logoPanel, gbc);
 
+        // 通信設定パネル
+        JPanel comPanel = new JPanel();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.BOTH;
+        JLabel portLabel = new JLabel("ポート番号");
+        JTextArea portText = new JTextArea();
+        portText.setPreferredSize(new Dimension(50,20));
+        JLabel portNum = new JLabel(Integer.toString(PORT));
+        JButton portSetButton = new JButton("設定");
+        PortSetListener portSetListener = new PortSetListener(portText, portNum, portSetButton);
+        portSetButton.addActionListener(portSetListener);
+
+        comPanel.add(portLabel);
+        comPanel.add(portText);
+        comPanel.add(portNum);
+        comPanel.add(portSetButton);
+        frame.add(comPanel, gbc);
+
         // --- ボタンパネル ---
         JPanel buttonPanel = new JPanel();
         JButton b = new JButton("開始");
-            JButton result_dbg = new JButton("勝敗画面開発");
+        JButton result_dbg = new JButton("勝敗画面開発");
         Listener listener = new Listener(frame, b);
-            WinListener winl = new WinListener(frame, result_dbg);
-            result_dbg.addActionListener(winl);
+        WinListener winl = new WinListener(frame, result_dbg);
+        result_dbg.addActionListener(winl);
         b.addActionListener(listener);
-        buttonPanel.add(b);
+        //buttonPanel.add(b);
         buttonPanel.add(result_dbg);
 
-        gbc.gridy = 1;
-        gbc.weighty = 1.0;
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.weighty = 0;
         gbc.fill = GridBagConstraints.BOTH;
         frame.add(buttonPanel, gbc);
 
+        JPanel empty = new JPanel();
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        frame.add(empty, gbc);
+
+        // --- 接続パネル ---
+        JPanel connectPanel = new JPanel();
+        JButton connectButton = new JButton("接続");
+        connectButton.addActionListener(e -> {
+            WordleClientThread clientThread = new WordleClientThread(
+                "localhost", PORT,
+                msg -> SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, msg)),
+                () -> JOptionPane.showInputDialog(frame, "サーバーからの入力要求です。5文字の単語を入力してください:")
+            );
+            clientThread.start();
+        });
+        connectPanel.add(connectButton);
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.BOTH;
+        frame.add(connectPanel, gbc);
+
         // --- アイコン設定 ---
-        ImageIcon icon = new ImageIcon("../res/WWicon.png"); // 相対/絶対パス
+        ImageIcon icon = new ImageIcon("../res/WWicon.png"); // 適宜パス調整必要
         frame.setIconImage(icon.getImage());
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
-        
+
         frame.setVisible(true);
         frame.setMinimumSize(frame.getSize());
 
@@ -61,8 +108,8 @@ public class W_Wordle_UI {
         frame.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                int minWidth = 450;  // 最小幅（ウィンドウ全体）
-                int minHeight = 500; // 最小高
+                int minWidth = 450;  // 最小幅
+                int minHeight = 500; // 最小高さ
                 int w = frame.getWidth();
                 int h = frame.getHeight();
                 boolean resized = false;
@@ -80,10 +127,10 @@ public class W_Wordle_UI {
                     frame.setSize(w, h);
                 }
             }
-    });
-
+        });
     }
 
+    // 接続開始ボタンのリスナー（開始ボタンはGameFrameへ切り替え）
     public class Listener implements ActionListener {
         JFrame frame;
         JButton b;
@@ -99,25 +146,55 @@ public class W_Wordle_UI {
             if (e.getSource() == b) {
                 frame.getContentPane().removeAll();
                 k = new GameFrame(frame);
-                frame.revalidate(); // 再レイアウト
-                frame.repaint();    // 再描画
+                frame.revalidate();
+                frame.repaint();
             }
         }
     }
 
-    // 勝敗表示
+    // 勝敗画面開発用リスナー（簡易）
     public class WinListener implements ActionListener {
         JFrame frame;
         JButton result_dbg;
         WinListener(JFrame frame, JButton b) {
             this.frame = frame;
-            result_dbg = b;
+            this.result_dbg = b;
         }
         @Override
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == result_dbg) {
-                ResultDialog r = new ResultDialog(frame, "win", false);
+                ResultDialog r = new ResultDialog(frame, "勝利！", true);
                 r.setVisible(true);
+            }
+        }
+    }
+
+    // ポート設定ボタンのリスナー
+    public class PortSetListener implements ActionListener {
+        JLabel portNum;
+        JTextArea portText;
+        JButton portSetButton;
+        PortSetListener(JTextArea portText, JLabel portNum, JButton portSetButton) {
+            this.portNum = portNum;
+            this.portText = portText;
+            this.portSetButton = portSetButton;
+        }
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (e.getSource() == portSetButton) {
+                String text = portText.getText().trim();
+                try {
+                    int parsedPort = Integer.parseInt(text);
+                    if (parsedPort < 0 || parsedPort > 65535) {
+                        throw new IllegalArgumentException("ポート番号は 0〜65535 の範囲で入力してください。");
+                    }
+                    PORT = parsedPort;
+                    portNum.setText(String.valueOf(PORT));
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "ポート番号は整数で入力してください。", "入力エラー", JOptionPane.ERROR_MESSAGE);
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage(), "入力エラー", JOptionPane.ERROR_MESSAGE);
+                }
             }
         }
     }
@@ -207,7 +284,7 @@ class GameFrame {
         // --- メニューバー(開発者向け) ---
         if(GLOBALVALS.isEdit) {
             MenuPanel menuPanel = new MenuPanel();
-            JMenuBar menuBar = menuPanel.createMenuBar(wordsArea);
+            JMenuBar menuBar = menuPanel.createMenuBar(wordsArea, k);
             frame.setJMenuBar(menuBar);
         }
 
@@ -337,14 +414,17 @@ class KeyBoardPanel extends JPanel {
     }
 }
 
+// 開発者向けメニュー
 class MenuPanel {
     WordsArea wordsArea;
+    KeyBoardPanel keyBoardPanel;
     
     public MenuPanel() {
     }
 
-    public JMenuBar createMenuBar(WordsArea wordsArea) {
+    public JMenuBar createMenuBar(WordsArea wordsArea, KeyBoardPanel keyBoardPanel) {
         this.wordsArea = wordsArea;
+        this.keyBoardPanel = keyBoardPanel;
 
         JMenuBar menuBar = new JMenuBar();
         int menuFontSize = 12;
@@ -355,16 +435,41 @@ class MenuPanel {
 
         JMenuItem blackOut = new JMenuItem("ブラックアウト");
         blackOut.addActionListener(e -> blackOut());
+        JMenuItem leftHide = new JMenuItem("レフトハイド");
+        leftHide.addActionListener(e -> leftHide());
+        JMenuItem rightHide = new JMenuItem("ライトハイド");
+        rightHide.addActionListener(e -> rightHide());
+        JMenuItem hideCancel = new JMenuItem("ハイド解除");
+        hideCancel.addActionListener(e -> hideCancel());
 
         menuBar.add(editScript);
         actionMenu.add(blackOut);
+        actionMenu.add(leftHide);
+        actionMenu.add(rightHide);
+        actionMenu.add(hideCancel);
+
         menuBar.add(actionMenu);
+        
 
         return menuBar;
     }
 
     public void blackOut() {
         wordsArea.makeAllBlack();
+    }
+
+    public void leftHide() {
+        keyBoardPanel.isLeftHidden = true;
+        keyBoardPanel.repaint();
+    }
+    public void rightHide() {
+        keyBoardPanel.isRightHidden = true;
+        keyBoardPanel.repaint();
+    }
+    public void hideCancel() {
+        keyBoardPanel.isLeftHidden = false;
+        keyBoardPanel.isRightHidden = false;
+        keyBoardPanel.repaint();
     }
 }
 
@@ -463,6 +568,7 @@ class TextPanel extends JPanel {
                         for(int i = 0; i < 5; i++) {
                             input_char[i] = (char) ((int) input_char[i] + ((int) 'a') - ((int) 'A'));
                         }
+                        input = new String(input_char);
 
                         // WordListのインスタンスが立っているので対応したい
                         if(wordList.isInList(input)) {
@@ -484,6 +590,7 @@ class TextPanel extends JPanel {
                             }
                             // wordをエリアに反映
                             Word word = new Word(input);
+                                word.apdateIsCorrect(new Word("linux"));    //デバッグ用
                             WordPanel wordPanel = new WordPanel(word);
                             wordsArea.addWordPanel(wordPanel);
                         } else {
@@ -605,7 +712,7 @@ class WordPanel extends JPanel {
                 g2.setColor(Color.DARK_GRAY); // 背面
             } else {
                 switch (word.isCorrect[i]) {
-                    case -1: g2.setColor(Color.GRAY); break;
+                    case -1: g2.setColor(Color.LIGHT_GRAY); break;
                     case 0: g2.setColor(Color.GREEN); break;
                     case 1: g2.setColor(myyellow); break;
                     default: g2.setColor(Color.BLACK); break;
@@ -708,6 +815,22 @@ class Word {
             isCorrect[2] = 1;
     }
     
+    // 正解を変更した時に正解判定色を変更する
+    public void apdateIsCorrect(Word ans) {
+        for(int i = 0; i < GLOBALVALS.wordLen; i++) {
+            if(this.char_array[i] == ans.char_array[i]) {
+                this.isCorrect[i] = 0;
+            } else {
+                this.isCorrect[i] = -1;
+                for(int j = 0; j < GLOBALVALS.wordLen; j++){
+                    if(this.char_array[i] == ans.char_array[j]) {
+                        this.isCorrect[i] = 1;
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }
 
 class ResultDialog extends JDialog {
@@ -736,5 +859,5 @@ class ResultDialog extends JDialog {
 
 class GLOBALVALS {
     public static int wordLen = 5;
-    public static boolean isEdit = true;    // 開発者向けオプション
+    public static boolean isEdit = false;    // 開発者向けオプション
 }
