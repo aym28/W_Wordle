@@ -11,9 +11,11 @@ public class W_Wordle_UI {
     GameFrame k;
     JFrame frame;
     public static int PORT = 8080;
+    int x, y;
 
-    public W_Wordle_UI() {
+    public W_Wordle_UI(int x, int y) {
         frame = new JFrame("W_Wordle");
+        frame.setLocation(x, y);
 
         // --- GridBagLayoutに変更 ---
         frame.setLayout(new GridBagLayout());
