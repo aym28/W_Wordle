@@ -98,7 +98,7 @@ public class W_Wordle_UI {
         frame.add(connectPanel, gbc);
 
         // --- アイコン設定 ---
-        ImageIcon icon = new ImageIcon("../res/WWicon.png"); // 適宜パス調整必要
+        ImageIcon icon = new ImageIcon("res/WWicon.png"); // 適宜パス調整必要
         frame.setIconImage(icon.getImage());
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -212,7 +212,7 @@ public class W_Wordle_UI {
 
 
 class LogoPanel extends JPanel {
-    Image img = Toolkit.getDefaultToolkit().getImage("../res/WWlogo.png");
+    Image img = Toolkit.getDefaultToolkit().getImage("res/WWlogo.png");
     LogoPanel() {
         this.setBackground(Color.white);
     }
@@ -227,6 +227,7 @@ class LogoPanel extends JPanel {
 class GameFrame {
     JFrame frame;
     WordsArea wordsArea;
+    TextPanel textPanel;
 
     public GameFrame(JFrame frame) {
         this.frame = frame;
@@ -276,7 +277,7 @@ class GameFrame {
         panel.add(k, gbcPanel);
 
         // --- TextPanel（固定サイズ） ---
-        TextPanel textPanel = new TextPanel(k, new WordList(), wordsArea);
+        textPanel = new TextPanel(k, new WordList(), wordsArea);
         textPanel.setPreferredSize(new Dimension(400, 100));
         textPanel.setMinimumSize(new Dimension(400, 100));
 
@@ -326,6 +327,10 @@ class GameFrame {
                 }
             }
         });
+    }
+
+    public TextPanel getTextPanel() {
+        return textPanel;
     }
 }
 
