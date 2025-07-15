@@ -46,10 +46,13 @@ public class WordleClientThread extends Thread {
                         out.println("");  // 空文字列も送る（キャンセルされた場合）
                     }
 
+                } else if(line.contains("勝利") || line.contains("負け")) {
+                    line = line.replace("/n","\n"); // 改行を復号
+                    javax.swing.JOptionPane.showMessageDialog(null, line, "ゲーム結果", javax.swing.JOptionPane.INFORMATION_MESSAGE);
                 } else if(   line.contains("お題を設定しました。相手の入力を待っています...")
                           || line.contains("対戦相手を待っています...")) {
                     messageHandler.accept(line);
-                } else {
+                    } else {
                     // 通常メッセージ表示
                     //messageHandler.accept(line);
                     if (ui.k != null) { // Make sure GameFrame (k) has been initialized
