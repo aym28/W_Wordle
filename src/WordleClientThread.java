@@ -2,6 +2,11 @@ import java.io.*;
 import java.net.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import java.awt.Component;
+import java.util.ArrayList;
+import java.util.List;
 
 public class WordleClientThread extends Thread {
     W_Wordle_UI ui;
@@ -20,6 +25,7 @@ public class WordleClientThread extends Thread {
 
     @Override
     public void run() {
+        ClosableMessage closableMessage = new ClosableMessage();
         try (
             Socket socket = new Socket(host, port);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
@@ -31,6 +37,7 @@ public class WordleClientThread extends Thread {
                 // メッセージ"Game Start"を受け取ったらゲーム画面に移行する
                 if(line.contains("Game Start")) {
                     ui.startGame();
+                    closableMessage.closeAll();     // ゲーム開始後に待機通知を気にする人なんていないので消す
                     System.out.println("ゲームを開始する処理");
                 }
 
@@ -48,10 +55,12 @@ public class WordleClientThread extends Thread {
 
                 } else if(line.contains("勝利") || line.contains("負け")) {
                     line = line.replace("/n","\n"); // 改行を復号
-                    javax.swing.JOptionPane.showMessageDialog(ui.frame, line, "ゲーム結果", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                    
+                    closableMessage.showMessage(ui.frame, line, "ゲーム結果");
+                    //javax.swing.JOptionPane.showMessageDialog(ui.frame, line, "ゲーム結果", javax.swing.JOptionPane.INFORMATION_MESSAGE);
                 } else if(   line.contains("お題を設定しました。相手の入力を待っています...")
                           || line.contains("対戦相手を待っています...")) {
-                    messageHandler.accept(line);
+                    closableMessage.showMessage(ui.frame, line, "待機");
                     } else {
                     // 通常メッセージ表示
                     //messageHandler.accept(line);
@@ -62,7 +71,29 @@ public class WordleClientThread extends Thread {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            messageHandler.accept("サーバとの接続中にエラーが発生しました。");
+            closableMessage.showMessage(ui.frame, "サーバーとの接続中にエラーが発生しました", "エラー");
         }
+    }
+}
+
+// 自動で閉じることができるメッセージダイアログ
+class ClosableMessage {
+    private final List<JDialog> dialogs = new ArrayList<>();
+
+    public void showMessage(Component parent, String message, String title) {
+        JOptionPane pane = new JOptionPane(message, JOptionPane.INFORMATION_MESSAGE);
+        JDialog dialog = pane.createDialog(parent, title);
+        dialog.setModal(false); // モードレスで表示
+        dialog.setVisible(true);
+        dialogs.add(dialog);
+    }
+
+    public void closeAll() {
+        for (JDialog d : dialogs) {
+            if (d.isShowing()) {
+                d.dispose();
+            }
+        }
+        dialogs.clear();
     }
 }
