@@ -255,7 +255,7 @@ public class WordleServer {
 
         currentPlayer.pushAnswer(guess, gameCount);
         currentOut.println(currentPlayer.getAnswerSheetString());
-        currentOut.println("------------------------------");
+        //currentOut.println("------------------------------");
 
         // ターンが終了するこのタイミングでサイレンスを解除
         if (currentPlayer.isSilenced()) {

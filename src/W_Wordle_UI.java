@@ -12,6 +12,7 @@ public class W_Wordle_UI {
     JFrame frame;
     public static int PORT = 8080;
     int x, y;
+    WordleClientThread clientThread;
 
     public W_Wordle_UI(int x, int y) {
         frame = new JFrame("W_Wordle");
@@ -83,7 +84,7 @@ public class W_Wordle_UI {
         JPanel connectPanel = new JPanel();
         JButton connectButton = new JButton("接続");
         connectButton.addActionListener(e -> {
-            WordleClientThread clientThread = new WordleClientThread(
+            clientThread = new WordleClientThread(
                 this, "localhost", PORT,
                 msg -> SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, msg)),
                 () -> JOptionPane.showInputDialog(frame, "サーバーからの入力要求です。5文字の単語を入力してください:")
@@ -135,7 +136,7 @@ public class W_Wordle_UI {
 
     public void startGame() {
         frame.getContentPane().removeAll();
-        k = new GameFrame(frame);
+        k = new GameFrame(frame, clientThread);
         frame.revalidate();
         frame.repaint();
     }
@@ -155,7 +156,7 @@ public class W_Wordle_UI {
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == b) {
                 frame.getContentPane().removeAll();
-                k = new GameFrame(frame);
+                k = new GameFrame(frame, clientThread);
                 frame.revalidate();
                 frame.repaint();
             }
@@ -228,8 +229,10 @@ class GameFrame {
     JFrame frame;
     WordsArea wordsArea;
     TextPanel textPanel;
+    WordleClientThread clientThread;
 
-    public GameFrame(JFrame frame) {
+    public GameFrame(JFrame frame, WordleClientThread clientThread) {
+        this.clientThread = clientThread;
         this.frame = frame;
         frame.setLayout(new GridBagLayout()); // frame に GridBagLayout を適用
         GridBagConstraints gbcFrame = new GridBagConstraints();
@@ -277,7 +280,7 @@ class GameFrame {
         panel.add(k, gbcPanel);
 
         // --- TextPanel（固定サイズ） ---
-        textPanel = new TextPanel(k, new WordList(), wordsArea);
+        textPanel = new TextPanel(k, new WordList(), wordsArea, clientThread);
         textPanel.setPreferredSize(new Dimension(400, 100));
         textPanel.setMinimumSize(new Dimension(400, 100));
 
@@ -497,8 +500,10 @@ class TextPanel extends JPanel {
     char[] input_char;
     boolean isAcceptInGram;
     JPanel wordsArea;  // 入力済みword表示エリア
+    WordleClientThread clientThread; // メッセージ送信用
     
-    TextPanel(KeyBoardPanel k, WordList wordList, WordsArea wordsArea) {
+    TextPanel(KeyBoardPanel k, WordList wordList, WordsArea wordsArea, WordleClientThread clientThread) {
+        this.clientThread = clientThread;
         this.keyBoardPanel = k;
         this.setLayout(new GridBagLayout());
 
@@ -586,6 +591,9 @@ class TextPanel extends JPanel {
 
                         // WordListのインスタンスが立っているので対応したい
                         if(wordList.isInList(input)) {
+                            // (*)メッセージを送る
+                            System.out.println("sendMessage: " + input);
+                            clientThread.sendMessage(input);
                             System.out.println("in list! " + input);
                             // ひとまず，入力された文字列すべてをacceptして，色を反映
                             for(int i = 0; i < 5; i++){
@@ -593,10 +601,6 @@ class TextPanel extends JPanel {
                                 if(k.isUpdated(tmp_c) == false) {
                                     // キーボード画面に変化がある．判定と合わせて色に変化を付ける
                                     k.updateCol(tmp_c,Color.GRAY);
-                                    /*
-                                        このへんにコードを書く
-                                    */
-
                                 } else {
                                     // 最終的に消してOK
                                     System.out.println("Already updated");
@@ -624,6 +628,29 @@ class TextPanel extends JPanel {
         } else {
             return true;
         }
+    }
+
+    void stopTextEnter() {
+        System.out.println("stop");
+        textArea.setBackground(Color.GRAY);
+        textArea.setForeground(Color.WHITE);
+        SwingUtilities.invokeLater(() -> {
+            textArea.setText("Wait..."); // ユーザーにより明確な指示
+        });
+        textArea.setEditable(false);
+        textArea.repaint();
+        //textArea.setForeground(Color.GRAY);  // 入力不可を視覚的に示す（任意）
+    }
+
+    void resumeTextEnter() {
+        System.out.println("resume");
+        textArea.setBackground(Color.WHITE);
+        textArea.setForeground(Color.BLACK);
+        textArea.setEditable(true);
+        SwingUtilities.invokeLater(() -> {
+            textArea.setText(""); // 入力欄をクリア（または必要な初期値）
+        });
+        textArea.setForeground(Color.BLACK); // 色を戻す（任意）
     }
 }
 

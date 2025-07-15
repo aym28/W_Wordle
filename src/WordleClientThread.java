@@ -14,6 +14,7 @@ public class WordleClientThread extends Thread {
     private int port;
     private Consumer<String> messageHandler;
     private Supplier<String> inputSupplier;
+    PrintWriter out;
 
     public WordleClientThread(W_Wordle_UI ui, String host, int port, Consumer<String> messageHandler, Supplier<String> inputSupplier) {
         this.ui = ui;
@@ -29,8 +30,9 @@ public class WordleClientThread extends Thread {
         try (
             Socket socket = new Socket(host, port);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
-            PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true)
+            PrintWriter out_tmp = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true)
         ) {
+            out = out_tmp;
             String line;
             while ((line = in.readLine()) != null) {
 
@@ -43,23 +45,39 @@ public class WordleClientThread extends Thread {
 
                 // PROMPTがついたら入力を促す
                 if (line.endsWith("|PROMPT")) {
-                    String promptMessage = line.replace("|PROMPT", "").trim();
+                    if(ui.k != null) {
+                            ui.k.getTextPanel().resumeTextEnter();
+                        }
+                    if(line.contains("お題")) {
+                        String promptMessage = line.replace("|PROMPT", "").trim();
 
-                    // UIスレッドで入力を取得する
-                    String userInput = inputSupplier.get();  // 例: JOptionPane.showInputDialog(...)
-                    if (userInput != null && !userInput.trim().isEmpty()) {
-                        out.println(userInput.trim());
-                    } else {
-                        out.println("");  // 空文字列も送る（キャンセルされた場合）
+                        // UIスレッドで入力を取得する
+                        String userInput = inputSupplier.get();  // 例: JOptionPane.showInputDialog(...)
+                        if (userInput != null && !userInput.trim().isEmpty()) {
+                            out.println(userInput.trim());
+                        } else {
+                            out.println("");  // 空文字列も送る（キャンセルされた場合）
+                        }
+                    } 
+                    if(line.contains("推測")) {
+                        closableMessage.closeAll();
+                        closableMessage.showMessage(ui.frame, "推測する単語を入力してください。('item'でアイテムストア)", "あなたのターンです");
                     }
-
                 } else if(line.contains("勝利") || line.contains("負け")) {
+                    closableMessage.closeAll();
+                    if(ui.k != null) {
+                        ui.k.getTextPanel().stopTextEnter();
+                    }
                     line = line.replace("/n","\n"); // 改行を復号
                     
                     closableMessage.showMessage(ui.frame, line, "ゲーム結果");
                     //javax.swing.JOptionPane.showMessageDialog(ui.frame, line, "ゲーム結果", javax.swing.JOptionPane.INFORMATION_MESSAGE);
                 } else if(   line.contains("お題を設定しました。相手の入力を待っています...")
-                          || line.contains("対戦相手を待っています...")) {
+                          || line.contains("対戦相手を待っています...")
+                          || line.contains("待機")) {
+                    if(ui.k != null) {
+                        ui.k.getTextPanel().stopTextEnter();
+                    }
                     closableMessage.showMessage(ui.frame, line, "待機");
                     } else {
                     // 通常メッセージ表示
@@ -72,6 +90,15 @@ public class WordleClientThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
             closableMessage.showMessage(ui.frame, "サーバーとの接続中にエラーが発生しました", "エラー");
+        }
+    }
+
+    // メッセージ送信用
+    public void sendMessage(String msg) {
+        if (out != null) {
+            System.out.println("SendMsg");
+            out.println(msg);
+            out.flush();
         }
     }
 }
