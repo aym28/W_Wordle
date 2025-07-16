@@ -983,7 +983,7 @@ class ItemShop{            //アイテムショップフレーム
         itembutton1.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                   
+                   wordleClientThread.sendMessage("1");
                 }
             });
         frame.add(itembutton1, gbcFrame);
@@ -1004,7 +1004,7 @@ class ItemShop{            //アイテムショップフレーム
         itembutton2.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    wordleClientThread.sendMessage("2");
                 }
             });
         frame.add(itembutton2, gbcFrame);
@@ -1025,7 +1025,7 @@ class ItemShop{            //アイテムショップフレーム
         itembutton3.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    wordleClientThread.sendMessage("3");
                 }
             });
         frame.add(itembutton3, gbcFrame);
@@ -1046,7 +1046,7 @@ class ItemShop{            //アイテムショップフレーム
         itembutton4.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    wordleClientThread.sendMessage("4");
                 }
             });
         frame.add(itembutton4, gbcFrame);
@@ -1067,7 +1067,7 @@ class ItemShop{            //アイテムショップフレーム
         itembutton5.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    wordleClientThread.sendMessage("5");
                 }
             });
         frame.add(itembutton5, gbcFrame);
@@ -1088,7 +1088,7 @@ class ItemShop{            //アイテムショップフレーム
         itembutton6.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    wordleClientThread.sendMessage("6");
                 }
             });
         frame.add(itembutton6, gbcFrame);
@@ -1109,7 +1109,7 @@ class ItemShop{            //アイテムショップフレーム
         itembutton7.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    wordleClientThread.sendMessage("7");
                 }
             });
         frame.add(itembutton7, gbcFrame);
@@ -1130,7 +1130,7 @@ class ItemShop{            //アイテムショップフレーム
         itembutton8.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
+                    wordleClientThread.sendMessage("8");
                 }
             });
         frame.add(itembutton8, gbcFrame);

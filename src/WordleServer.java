@@ -233,9 +233,10 @@ public class WordleServer {
             currentOut.println("ポイント: " + currentPlayer.getPoints());
             // サイレンス状態ならメッセージを表示
             if (currentPlayer.isSilenced()) {
-                currentOut.println("【アイテム封印中】");
+                currentOut.println("推測する単語を入力してください。【アイテム封印中】|PROMPT");                
+            } else {
+                currentOut.println("推測する単語を入力してください。('item'でアイテムストア)|PROMPT");
             }
-            currentOut.println("推測する単語を入力してください。('item'でアイテムストア)|PROMPT");
 
             String input = currentIn.readLine();
             if (input == null) return true;
@@ -315,7 +316,7 @@ public class WordleServer {
      * アイテムの効果を実際に実行する
      */
     private static void executeItemEffect(Player user, Player opponent, Item item, PrintWriter out, BufferedReader in) throws IOException {
-        out.println("「" + item.getName() + "」を使用しました。");
+        out.println("「" + item.getName() + "」を使用しました。|ITEM");
 
         switch (item) {
             case SENGAN:
@@ -329,10 +330,10 @@ public class WordleServer {
                 userAnswerChars.removeAll(userGuessedChars);
 
                 if (userAnswerChars.isEmpty()) {
-                    out.println("結果: 新しく開示できる文字はありませんでした。");
+                    out.println("結果: 新しく開示できる文字はありませんでした。|ITEM");
                 } else {
                     Character revealedChar = new ArrayList<>(userAnswerChars).get(0);
-                    out.println("結果: 「" + revealedChar + "」があなたの答えに含まれています。(黄色)");
+                    out.println("結果: 「" + revealedChar + "」があなたの答えに含まれています。(黄色)|ITEM");
                 }
                 break;
             }
@@ -352,24 +353,24 @@ public class WordleServer {
                 }
 
                 if (unknownGreenIndexes.isEmpty()) {
-                    out.println("結果: 新しく開示できる緑色の文字はありませんでした。");
+                    out.println("結果: 新しく開示できる緑色の文字はありませんでした。|ITEM");
                 } else {
                     int revealedIndex = unknownGreenIndexes.get(0);
                     char revealedChar = user.answer.charAt(revealedIndex);
-                    out.println("結果: あなたの答えの" + (revealedIndex + 1) + "文字目は「" + revealedChar + "」です。(緑色)");
+                    out.println("結果: あなたの答えの" + (revealedIndex + 1) + "文字目は「" + revealedChar + "」です。(緑色)|ITEM");
                 }
                 break;
             }
             case DOUBLE_MOVE:
                 user.grantDoubleMove();
-                out.println("次の推測の後、もう一度あなたのターンになります。");
+                out.println("次の推測の後、もう一度あなたのターンになります。|ITEM");
                 break;
             case SILENCE:
                 opponent.setSilenced(true);
-                out.println("次の相手のターン、アイテム使用を封じました。");
+                out.println("次の相手のターン、アイテム使用を封じました。|ITEM");
                 break;
             case WORD_SCAN: {
-                out.println("スキャンする種類を選んでください (1: 母音, 2: 子音)|PROMPT");
+                out.println("スキャンする種類を選んでください (1: 母音, 2: 子音)|ITEM|PROMPT");
                 String choice = in.readLine();
                 String vowels = "aiueo";
                 Set<Character> foundChars = new HashSet<>();
@@ -389,29 +390,29 @@ public class WordleServer {
                 break;
             }
             case QUESTION:
-                out.println("調べたい文字を1文字入力してください。|PROMPT");
+                out.println("調べたい文字を1文字入力してください。|ITEM|PROMPT");
                 String charToAsk = in.readLine();
                 if (charToAsk != null && charToAsk.length() == 1) {
                     if (user.answer.contains(charToAsk.toLowerCase())) {
-                        out.println("結果: その文字はあなたの答えに【含まれています】(黄色)");
+                        out.println("結果: その文字はあなたの答えに【含まれています】(黄色)|ITEM");
                     } else {
-                        out.println("結果: その文字はあなたの答えに【含まれていません】(黒)");
+                        out.println("結果: その文字はあなたの答えに【含まれていません】(黒)|ITEM");
                     }
                 } else {
-                    out.println("入力が無効です。");
+                    out.println("入力が無効です。|ITEM");
                 }
                 break;
             case CHAOS_CHANGE:
-                out.println("相手の新しいお題となる単語(5文字)を入力してください。|PROMPT");
+                out.println("相手の新しいお題となる単語(5文字)を入力してください。|ITEM|PROMPT");
                 while (true) {
                     String newWord = in.readLine();
                     if (newWord != null && newWord.length() == WORD_SIZE && answerWordList.isInList(newWord.toLowerCase())) {
                         opponent.answer = newWord.toLowerCase();
-                        out.println("お題を「" + newWord.toLowerCase() + "」に再設定しました。");
+                        out.println("お題を「" + newWord.toLowerCase() + "」に再設定しました。|ITEM");
                         user.setUsedChaosChange();
                         break;
                     }
-                    out.println("エラー: その単語はリストにありません。もう一度入力してください。|PROMPT");
+                    out.println("エラー: その単語はリストにありません。もう一度入力してください。|ITEM|PROMPT");
                 }
                 break;
         }

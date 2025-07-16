@@ -62,6 +62,7 @@ public class WordleClientThread extends Thread {
                 // アイテムショップの処理
                 if(line.contains("|ITEM")) {
                     line = line.replace("|ITEM","");
+                    closableMessage.showMessage(ui.frame,line,"アイテムショップ");
                     ui.k.getTextPanel().stopTextEnter();
                     continue;
                 }
@@ -84,7 +85,7 @@ public class WordleClientThread extends Thread {
                         }
                     } 
                     if(line.contains("推測")) {
-                        closableMessage.closeAll();
+                        //closableMessage.closeAll();
                         closableMessage.showMessage(ui.frame, "推測する単語を入力してください。('item'でアイテムストア)", "あなたのターンです");
                     }
                 } else if(line.contains("勝利") || line.contains("負け") || line.contains("引き分け")) {
