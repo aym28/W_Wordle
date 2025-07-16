@@ -1016,3 +1016,189 @@ class GLOBALVALS {
     public static int wordLen = 5;
     public static boolean isEdit = false;    // 開発者向けオプション
 }
+
+
+class ItemShop{            //アイテムショップフレーム
+    JFrame frame;
+
+    ItemShop() {
+        frame = new JFrame("ItemShop");
+        frame.setLayout(new GridBagLayout());
+        GridBagConstraints gbcFrame = new GridBagConstraints();
+        
+        //Item.javaより
+        
+        Item item1 = Item.SENGAN;
+        ImageIcon rawicon = new ImageIcon("./res/SENGANimg.png");
+        Image scaledImg = rawicon.getImage().getScaledInstance(64, 64, Image.SCALE_SMOOTH);
+        ImageIcon scaledicon = new ImageIcon(scaledImg);
+        JButton itembutton1 = new JButton("千里眼", scaledicon);
+        //itembutton1.setPreferredSize(new Dimension(100, 120));
+        gbcFrame.gridx = 0;
+        gbcFrame.gridy = 0;
+        gbcFrame.fill = GridBagConstraints.NONE;  // 拡がらせない
+        gbcFrame.insets = new Insets(2, 2, 2, 2); // マージン狭め
+        gbcFrame.anchor = GridBagConstraints.CENTER;
+        itembutton1.setHorizontalTextPosition(SwingConstants.CENTER);
+        itembutton1.setVerticalTextPosition(SwingConstants.BOTTOM);
+
+        itembutton1.setToolTipText("<html>コスト:"+item1.getCost()+"<BR>"+ item1.getDescription()+"</html>");
+        itembutton1.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                   
+                }
+            });
+        frame.add(itembutton1, gbcFrame);
+
+        Item item2 = Item.TENKEI_PIECE;
+        ImageIcon rawicon2 = new ImageIcon("./res/TENKEI_PIECEimg.png");
+        Image scaledimg2 = rawicon2.getImage().getScaledInstance(64, 64, Image.SCALE_SMOOTH);
+        ImageIcon scaledicon2 = new ImageIcon(scaledimg2);
+        JButton itembutton2 = new JButton("天啓の一片", scaledicon2);
+        gbcFrame.gridx = 1;
+        gbcFrame.gridy = 0;
+        gbcFrame.fill = GridBagConstraints.NONE;  // 拡がらせない
+        gbcFrame.insets = new Insets(2, 2, 2, 2); // マージン狭め
+        gbcFrame.anchor = GridBagConstraints.CENTER;
+        itembutton2.setHorizontalTextPosition(SwingConstants.CENTER);
+        itembutton2.setVerticalTextPosition(SwingConstants.BOTTOM);
+        itembutton2.setToolTipText("<html>コスト:"+item2.getCost()+"<BR>"+ item2.getDescription()+"</html>");
+        itembutton2.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    
+                }
+            });
+        frame.add(itembutton2, gbcFrame);
+
+        Item item3 = Item.TENKEI_WORD;
+        ImageIcon rawicon3 = new ImageIcon("./res/TENKEI_WORDimg.png");
+        Image scaledimg3 = rawicon3.getImage().getScaledInstance(64, 64, Image.SCALE_SMOOTH);
+        ImageIcon scaledicon3 = new ImageIcon(scaledimg3);
+        JButton itembutton3 = new JButton("天啓の一文字", scaledicon3);
+        gbcFrame.gridx = 2;
+        gbcFrame.gridy = 0;
+        gbcFrame.fill = GridBagConstraints.NONE;  // 拡がらせない
+        gbcFrame.insets = new Insets(2, 2, 2, 2); // マージン狭め
+        gbcFrame.anchor = GridBagConstraints.CENTER;
+        itembutton3.setHorizontalTextPosition(SwingConstants.CENTER);
+        itembutton3.setVerticalTextPosition(SwingConstants.BOTTOM);
+        itembutton3.setToolTipText("<html>コスト:"+item3.getCost()+"<BR>"+ item3.getDescription()+"</html>");
+        itembutton3.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    
+                }
+            });
+        frame.add(itembutton3, gbcFrame);
+
+        Item item4 = Item.DOUBLE_MOVE;
+        ImageIcon rawicon4 = new ImageIcon("./res/DOUBLE_MOVEimg.png");
+        Image scaledimg4 = rawicon4.getImage().getScaledInstance(64, 64, Image.SCALE_SMOOTH);
+        ImageIcon scaledicon4 = new ImageIcon(scaledimg4);
+        JButton itembutton4 = new JButton("ダブルムーブ", scaledicon4);
+        gbcFrame.gridx = 3;
+        gbcFrame.gridy = 0;
+        gbcFrame.fill = GridBagConstraints.NONE;  // 拡がらせない
+        gbcFrame.insets = new Insets(2, 2, 2, 2); // マージン狭め
+        gbcFrame.anchor = GridBagConstraints.CENTER;
+        itembutton4.setHorizontalTextPosition(SwingConstants.CENTER);
+        itembutton4.setVerticalTextPosition(SwingConstants.BOTTOM);
+        itembutton4.setToolTipText("<html>コスト:"+item4.getCost()+"<BR>"+ item4.getDescription()+"</html>");
+        itembutton4.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    
+                }
+            });
+        frame.add(itembutton4, gbcFrame);
+
+        Item item5 = Item.SILENCE;
+        ImageIcon rawicon5 = new ImageIcon("./res/SILENCEimg.png");
+        Image scaledimg5 = rawicon5.getImage().getScaledInstance(64, 64, Image.SCALE_SMOOTH);
+        ImageIcon scaledicon5 = new ImageIcon(scaledimg5);
+        JButton itembutton5 = new JButton("サイレンス", scaledicon5);
+        gbcFrame.gridx = 4;
+        gbcFrame.gridy = 0;
+        gbcFrame.fill = GridBagConstraints.NONE;  // 拡がらせない
+        gbcFrame.insets = new Insets(2, 2, 2, 2); // マージン狭め
+        gbcFrame.anchor = GridBagConstraints.CENTER;
+        itembutton5.setHorizontalTextPosition(SwingConstants.CENTER);
+        itembutton5.setVerticalTextPosition(SwingConstants.BOTTOM);
+        itembutton5.setToolTipText("<html>コスト:"+item5.getCost()+"<BR>"+ item5.getDescription()+"</html>");
+        itembutton5.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    
+                }
+            });
+        frame.add(itembutton5, gbcFrame);
+
+        Item item6 = Item.WORD_SCAN;
+        ImageIcon rawicon6 = new ImageIcon("./res/WORD_SCANimg.png");
+        Image scaledimg6 = rawicon6.getImage().getScaledInstance(64, 64, Image.SCALE_SMOOTH);
+        ImageIcon scaledicon6 = new ImageIcon(scaledimg6);
+        JButton itembutton6 = new JButton("ワードスキャン", scaledicon6);
+        gbcFrame.gridx = 5;
+        gbcFrame.gridy = 0;
+        gbcFrame.fill = GridBagConstraints.NONE;  // 拡がらせない
+        gbcFrame.insets = new Insets(2, 2, 2, 2); // マージン狭め
+        gbcFrame.anchor = GridBagConstraints.CENTER;
+        itembutton6.setHorizontalTextPosition(SwingConstants.CENTER);
+        itembutton6.setVerticalTextPosition(SwingConstants.BOTTOM);
+        itembutton6.setToolTipText("<html>コスト:"+item6.getCost()+"<BR>"+ item6.getDescription()+"</html>");
+        itembutton6.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    
+                }
+            });
+        frame.add(itembutton6, gbcFrame);
+
+        Item item7 = Item.QUESTION;
+        ImageIcon rawicon7 = new ImageIcon("./res/QUESTIONimg.png");
+        Image scaledimg7 = rawicon7.getImage().getScaledInstance(64, 64, Image.SCALE_SMOOTH);
+        ImageIcon scaledicon7 = new ImageIcon(scaledimg7);
+        JButton itembutton7 = new JButton("質問権", scaledicon7);
+        gbcFrame.gridx = 6;
+        gbcFrame.gridy = 0;
+        gbcFrame.fill = GridBagConstraints.NONE;  // 拡がらせない
+        gbcFrame.insets = new Insets(2, 2, 2, 2); // マージン狭め
+        gbcFrame.anchor = GridBagConstraints.CENTER;
+        itembutton7.setHorizontalTextPosition(SwingConstants.CENTER);
+        itembutton7.setVerticalTextPosition(SwingConstants.BOTTOM);
+        itembutton7.setToolTipText("<html>コスト:"+item7.getCost()+"<BR>"+ item7.getDescription()+"</html>");
+        itembutton7.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    
+                }
+            });
+        frame.add(itembutton7, gbcFrame);
+
+        Item item8 = Item.CHAOS_CHANGE;
+        ImageIcon rawicon8 = new ImageIcon("./res/CHAOS_CHANGEimg.png");
+        Image scaledimg8 = rawicon8.getImage().getScaledInstance(64, 64, Image.SCALE_SMOOTH);
+        ImageIcon scaledicon8 = new ImageIcon(scaledimg8);
+        JButton itembutton8 = new JButton("カオスチェンジ", scaledicon8);
+        gbcFrame.gridx = 7;
+        gbcFrame.gridy = 0;
+        gbcFrame.fill = GridBagConstraints.NONE;  // 拡がらせない
+        gbcFrame.insets = new Insets(2, 2, 2, 2); // マージン狭め
+        gbcFrame.anchor = GridBagConstraints.CENTER;
+        itembutton8.setHorizontalTextPosition(SwingConstants.CENTER);
+        itembutton8.setVerticalTextPosition(SwingConstants.BOTTOM);
+        itembutton8.setToolTipText("<html>コスト:"+item8.getCost()+"<BR>"+ item8.getDescription()+"</html>");
+        itembutton8.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    
+                }
+            });
+        frame.add(itembutton8, gbcFrame);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(900, 150);
+        frame.setVisible(true);
+    }
+}
