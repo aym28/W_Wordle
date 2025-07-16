@@ -11,9 +11,13 @@ public class W_Wordle_UI {
     GameFrame k;
     JFrame frame;
     public static int PORT = 8080;
+    int x, y;
+    WordleClientThread clientThread;
+    JButton connectButton;
 
-    public W_Wordle_UI() {
+    public W_Wordle_UI(int x, int y) {
         frame = new JFrame("W_Wordle");
+        frame.setLocation(x, y);
 
         // --- GridBagLayoutに変更 ---
         frame.setLayout(new GridBagLayout());
@@ -68,35 +72,84 @@ public class W_Wordle_UI {
         gbc.gridy = 2;
         gbc.weighty = 0;
         gbc.fill = GridBagConstraints.BOTH;
-        frame.add(buttonPanel, gbc);
+        //frame.add(buttonPanel, gbc);
+
+        JPanel explanation = new JPanel();
+        JTextPane explainText = new JTextPane();
+
+        // スタイル付きテキストの設定
+        StyledDocument doc = explainText.getStyledDocument();
+
+        // スタイル1: 通常文字
+        SimpleAttributeSet normal = new SimpleAttributeSet();
+        StyleConstants.setFontFamily(normal, "MS ゴシック");
+        StyleConstants.setFontSize(normal, 12);
+
+        // スタイル2: 太字 + 赤色
+        SimpleAttributeSet boldRed = new SimpleAttributeSet();
+        StyleConstants.setFontFamily(boldRed, "MS ゴシック");
+        StyleConstants.setFontSize(boldRed, 26);
+        StyleConstants.setBold(boldRed, true);
+        StyleConstants.setForeground(boldRed, new Color(128,0,0));
+
+        // テキストを挿入（例: "Waseda Wordleとは --About Waseda Wordle" の一部を強調）
+        try {
+doc.insertString(doc.getLength(), "\n", normal);
+doc.insertString(doc.getLength(), "Waseda Wordleとは -About Waseda\nWordle\n", boldRed);
+doc.insertString(doc.getLength(), "「Waseda Wordle（ワセダ ワードル）」は、早稲田大学の学生によって開発され\n",normal);
+doc.insertString(doc.getLength(), "た、5文字の英単語を使った2人対戦型のWordle風ゲームです。プレイヤーは交互\n",normal);
+doc.insertString(doc.getLength(), "に単語を推測し、色によるフィードバックをもとに相手より早く正解を導き出す\n",normal);
+doc.insertString(doc.getLength(), "ことを目指します。チャット接続を通じて、遠隔でも対戦可能。ヒント機能など、\n",normal);
+doc.insertString(doc.getLength(), "ゲームを盛り上げる多彩な仕掛けが搭載されています。\n", normal);
+doc.insertString(doc.getLength(), "-Waseda Wordle is a two-player competitive Wordle-style game developed by\n",normal);
+doc.insertString(doc.getLength(), "students of Waseda University. Players take turns guessing 5-letter words\n",normal);
+doc.insertString(doc.getLength(), "and aim to deduce the correct word faster than their opponent, using color-coded\n",normal);
+doc.insertString(doc.getLength(), "feedback. Online play is supported through chat-based connection, and various\n",normal);
+doc.insertString(doc.getLength(), "features such as hint items enhance the gameplay experience.\n",normal);
+            //doc.insertString(doc.getLength(), " Wordle", normal);
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
+
+        explanation.setLayout(new BorderLayout());
+        Color defaultBg = UIManager.getColor("Panel.background");
+        explainText.setBackground(defaultBg);
+        explanation.add(explainText, BorderLayout.CENTER);
+        
+        explanation.add(explainText);
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.BOTH;
+        frame.add(explanation, gbc);
 
         JPanel empty = new JPanel();
         gbc.gridx = 0;
-        gbc.gridy = 3;
+        gbc.gridy = 4;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         frame.add(empty, gbc);
 
         // --- 接続パネル ---
         JPanel connectPanel = new JPanel();
-        JButton connectButton = new JButton("接続");
+        connectButton = new JButton("接続");
         connectButton.addActionListener(e -> {
-            WordleClientThread clientThread = new WordleClientThread(
+        clientThread = new WordleClientThread(
                 this, "localhost", PORT,
                 msg -> SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, msg)),
-                () -> JOptionPane.showInputDialog(frame, "サーバーからの入力要求です。5文字の単語を入力してください:")
+                () -> JOptionPane.showInputDialog(frame, "お題として5文字の単語を入力してください:")
             );
             clientThread.start();
         });
         connectPanel.add(connectButton);
         gbc.gridx = 0;
-        gbc.gridy = 4;
+        gbc.gridy = 5;
         gbc.weighty = 0;
         gbc.fill = GridBagConstraints.BOTH;
         frame.add(connectPanel, gbc);
 
         // --- アイコン設定 ---
-        ImageIcon icon = new ImageIcon("../res/WWicon.png"); // 適宜パス調整必要
+        ImageIcon icon = new ImageIcon("res/WWicon.png"); // 適宜パス調整必要
         frame.setIconImage(icon.getImage());
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -133,7 +186,7 @@ public class W_Wordle_UI {
 
     public void startGame() {
         frame.getContentPane().removeAll();
-        k = new GameFrame(frame);
+        k = new GameFrame(frame, clientThread);
         frame.revalidate();
         frame.repaint();
     }
@@ -153,7 +206,7 @@ public class W_Wordle_UI {
         public void actionPerformed(ActionEvent e) {
             if (e.getSource() == b) {
                 frame.getContentPane().removeAll();
-                k = new GameFrame(frame);
+                k = new GameFrame(frame, clientThread);
                 frame.revalidate();
                 frame.repaint();
             }
@@ -210,7 +263,7 @@ public class W_Wordle_UI {
 
 
 class LogoPanel extends JPanel {
-    Image img = Toolkit.getDefaultToolkit().getImage("../res/WWlogo.png");
+    Image img = Toolkit.getDefaultToolkit().getImage("res/WWlogo.png");
     LogoPanel() {
         this.setBackground(Color.white);
     }
@@ -225,8 +278,12 @@ class LogoPanel extends JPanel {
 class GameFrame {
     JFrame frame;
     WordsArea wordsArea;
+    TextPanel textPanel;
+    WordleClientThread clientThread;
+    KeyBoardPanel k;
 
-    public GameFrame(JFrame frame) {
+    public GameFrame(JFrame frame, WordleClientThread clientThread) {
+        this.clientThread = clientThread;
         this.frame = frame;
         frame.setLayout(new GridBagLayout()); // frame に GridBagLayout を適用
         GridBagConstraints gbcFrame = new GridBagConstraints();
@@ -249,22 +306,20 @@ class GameFrame {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbcPanel = new GridBagConstraints();
 
-        // --- WordsArea をスクロール対応で追加 ---
+        // --- WordsArea を直接追加（WordsArea は自身でスクロールを持つ） ---
         wordsArea = new WordsArea();
-        JScrollPane scrollPane = new JScrollPane(wordsArea);
-        scrollPane.setPreferredSize(new Dimension(400, 200));
-        scrollPane.setMinimumSize(new Dimension(400, 200));
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        wordsArea.setPreferredSize(new Dimension(400, 200));
+        wordsArea.setMinimumSize(new Dimension(400, 200));
 
         gbcPanel.gridx = 0;
         gbcPanel.gridy = 0;
         gbcPanel.weightx = 1.0;
         gbcPanel.weighty = 1.0; // WordsArea は高さを自由に伸ばせる
         gbcPanel.fill = GridBagConstraints.BOTH;
-        panel.add(scrollPane, gbcPanel);
+        panel.add(wordsArea, gbcPanel);
 
         // --- KeyBoardPanel（固定サイズ） ---
-        KeyBoardPanel k = new KeyBoardPanel(frame);
+        k = new KeyBoardPanel(frame);
         k.setPreferredSize(new Dimension(400, 130));
         k.setMinimumSize(new Dimension(400, 130));
 
@@ -274,7 +329,7 @@ class GameFrame {
         panel.add(k, gbcPanel);
 
         // --- TextPanel（固定サイズ） ---
-        TextPanel textPanel = new TextPanel(k, new WordList(), wordsArea);
+        textPanel = new TextPanel(k, new WordList(), wordsArea, clientThread);
         textPanel.setPreferredSize(new Dimension(400, 100));
         textPanel.setMinimumSize(new Dimension(400, 100));
 
@@ -325,7 +380,16 @@ class GameFrame {
             }
         });
     }
+
+    public TextPanel getTextPanel() {
+        return textPanel;
+    }
+
+    public KeyBoardPanel getKeyBoardPanel() {
+        return k;
+    }
 }
+
 
 class KeyBoardPanel extends JPanel {
     Color[] usedCharCol = new Color[100];
@@ -490,8 +554,11 @@ class TextPanel extends JPanel {
     char[] input_char;
     boolean isAcceptInGram;
     JPanel wordsArea;  // 入力済みword表示エリア
+    WordleClientThread clientThread; // メッセージ送信用
+    JButton itemButton;
     
-    TextPanel(KeyBoardPanel k, WordList wordList, WordsArea wordsArea) {
+    TextPanel(KeyBoardPanel k, WordList wordList, WordsArea wordsArea, WordleClientThread clientThread) {
+        this.clientThread = clientThread;
         this.keyBoardPanel = k;
         this.setLayout(new GridBagLayout());
 
@@ -505,11 +572,18 @@ class TextPanel extends JPanel {
         gbc.anchor = GridBagConstraints.CENTER;
         add(textArea,gbc);
 
+        itemButton = new JButton("アイテム購入");
+        itemButton.setEnabled(false);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        add(itemButton,gbc);
+
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;  
-        add(notify,gbc);
+        //add(notify,gbc);
         textArea.setPreferredSize(new Dimension(100,20));
 
 
@@ -561,14 +635,17 @@ class TextPanel extends JPanel {
                                 System.out.println("char" + i + "," + input_char[i]);
                             } else {
                                 isAcceptInGram = false;
-                                System.out.println("Error: 入力された文字列が[A-Za-z]^5に入っていません");
-                                notify.setText("Error: 入力された文字列が[A-Za-z]^5に入っていません");
+                                //System.out.println("Error: 入力された文字列が[A-Za-z]^5に入っていません");
+                                //notify.setText("Error: 入力された文字列が[A-Za-z]^5に入っていません");
+                                clientThread.closableMessage.showMessage(k,"入力された文字列が[A-Za-z]^5に入っていません","Error");
+                                break;
                             }
                         }
                     } else {
                         isAcceptInGram = false;
                         System.out.println("Error: 入力された文字列の長さが適合しません");
                         notify.setText("Error: 入力された文字列の長さが適合しません");
+                        clientThread.closableMessage.showMessage(k,"入力された文字列の長さが適合しません","Error");
                     }
                     if(isAcceptInGram) {
                         // wordListが小文字で書かれているので小文字に変換
@@ -579,6 +656,9 @@ class TextPanel extends JPanel {
 
                         // WordListのインスタンスが立っているので対応したい
                         if(wordList.isInList(input)) {
+                            // (*)メッセージを送る
+                            System.out.println("sendMessage: " + input);
+                            clientThread.sendMessage(input);
                             System.out.println("in list! " + input);
                             // ひとまず，入力された文字列すべてをacceptして，色を反映
                             for(int i = 0; i < 5; i++){
@@ -586,23 +666,20 @@ class TextPanel extends JPanel {
                                 if(k.isUpdated(tmp_c) == false) {
                                     // キーボード画面に変化がある．判定と合わせて色に変化を付ける
                                     k.updateCol(tmp_c,Color.GRAY);
-                                    /*
-                                        このへんにコードを書く
-                                    */
-
                                 } else {
                                     // 最終的に消してOK
                                     System.out.println("Already updated");
                                 }
                             }
                             // wordをエリアに反映
-                            Word word = new Word(input);
-                                word.apdateIsCorrect(new Word("linux"));    //デバッグ用
-                            WordPanel wordPanel = new WordPanel(word);
-                            wordsArea.addWordPanel(wordPanel);
+                            //Word word = new Word(input);
+                            //    word.apdateIsCorrect(new Word("linux"));    //デバッグ用
+                            //WordPanel wordPanel = new WordPanel(word);
+                            //wordsArea.addWordPanel(wordPanel);
                         } else {
                             notify.setText("This word is not in List.");
                             System.out.println("out of list " + input);
+                            clientThread.closableMessage.showMessage(k,"単語リストにありません","Woops!");
                         }
                     }
                 }
@@ -618,53 +695,163 @@ class TextPanel extends JPanel {
             return true;
         }
     }
+
+    void setEndState(String str) {
+        // 全てのコンポーネントを削除
+        this.removeAll();
+
+        // レイアウトを中央揃えに設定
+        this.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(10, 0, 10, 0);
+
+        // ラベル（strで表示）
+        JLabel gameOverLabel = new JLabel(str);
+        gameOverLabel.setFont(new Font("MS ゴシック", Font.BOLD, 24));
+        gameOverLabel.setForeground(Color.RED);
+
+        gbc.gridy = 0;
+        this.add(gameOverLabel, gbc);
+
+        // ボタン2つ（終了／再挑戦）を横並びで載せるパネル
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 0)); // 横並び・間隔20px
+
+        // 終了ボタン
+        JButton exitButton = new JButton("終了");
+        exitButton.setFont(new Font("MS ゴシック", Font.PLAIN, 16));
+        exitButton.addActionListener(e -> {
+            Window window = SwingUtilities.getWindowAncestor(this);
+            if (window != null) {
+                window.dispose(); // ウィンドウを閉じる
+            }
+        });
+
+        // 再挑戦ボタン
+        JButton retryButton = new JButton("タイトルに戻る");
+        retryButton.setFont(new Font("MS ゴシック", Font.PLAIN, 16));
+        retryButton.addActionListener(e -> {
+            // 新しいUIを起動（例として座標は 100, 100 に固定）
+            new W_Wordle_UI(100, 100);
+            Window window = SwingUtilities.getWindowAncestor(this);
+            if (window != null) {
+                window.dispose(); // 古いウィンドウを閉じる
+            }
+        });
+
+        // ボタン追加
+        buttonPanel.add(exitButton);
+        buttonPanel.add(retryButton);
+
+        // ボタンパネルをパネル本体に追加
+        gbc.gridy = 1;
+        this.add(buttonPanel, gbc);
+
+        // 再描画
+        this.revalidate();
+        this.repaint();
+    }
+
+    void stopTextEnter() {
+        System.out.println("stop");
+        textArea.setBackground(Color.GRAY);
+        textArea.setForeground(Color.WHITE);
+        SwingUtilities.invokeLater(() -> {
+            textArea.setText("Wait..."); // ユーザーにより明確な指示
+        });
+        textArea.setEditable(false);
+        textArea.repaint();
+        //textArea.setForeground(Color.GRAY);  // 入力不可を視覚的に示す（任意）
+    }
+
+    void resumeTextEnter() {
+        System.out.println("resume");
+        textArea.setBackground(Color.WHITE);
+        textArea.setForeground(Color.BLACK);
+        textArea.setEditable(true);
+        SwingUtilities.invokeLater(() -> {
+            textArea.setText(""); // 入力欄をクリア（または必要な初期値）
+        });
+        textArea.setForeground(Color.BLACK); // 色を戻す（任意）
+    }
 }
 
 class WordsArea extends JPanel {
     private JPanel contentPanel;
+    private JScrollPane scrollPane;
 
     // WordPanelのインスタンスを管理するためのリスト
     private List<WordPanel> wordPanels = new ArrayList<>();
 
-    WordsArea() {
+    public WordsArea() {
         setLayout(new BorderLayout());
 
-        // ラベルを上に追加
+        // 上部のラベル
         JLabel label = new JLabel("入力したWord", SwingConstants.CENTER);
         add(label, BorderLayout.NORTH);
 
-        // WordPanelを並べるパネル
+        // WordPanelを縦に並べるパネル
         contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(Color.GRAY);
 
-        // スクロール対応（スクロール非表示でもOK）
-        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        // contentPanelをスクロール可能にするスクロールペイン
+        scrollPane = new JScrollPane(contentPanel);
         scrollPane.setBorder(null);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         add(scrollPane, BorderLayout.CENTER);
     }
 
+    // 一番下までスクロールするメソッド
+    public void scrollToBottom() {
+        SwingUtilities.invokeLater(() -> {
+            JScrollBar verticalBar = scrollPane.getVerticalScrollBar();
+            verticalBar.setValue(verticalBar.getMaximum());
+        });
+    }
+
+    // WordPanelを追加するメソッド
     public void addWordPanel(WordPanel wp) {
-        // インスタンスリストに追加
         wordPanels.add(wp);
 
-        // 高さが 0 のままだと表示されないので明示的にサイズを設定
-        wp.setMaximumSize(new Dimension(400, 70));  // 横幅制限あり
-        wp.setPreferredSize(new Dimension(400, 70)); // 必須
-        wp.setAlignmentX(Component.CENTER_ALIGNMENT); // 中央寄せ（任意）
+        // 横幅はスクロール領域に合わせて固定（必要に応じて調整）
+        wp.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70)); // 横幅は制限せず、縦70に固定
+        wp.setPreferredSize(new Dimension(400, 70));
+        wp.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         contentPanel.add(wp);
         contentPanel.revalidate();
         contentPanel.repaint();
-        wp.flipWord();
+
+        wp.flipWord(); // アニメーション等（もしあれば）
+
+        scrollToBottom();
     }
 
-    // WordPanelを全て黒くする
+    // すべてのWordPanelの色を黒にする例
     public void makeAllBlack() {
         for (WordPanel wp : wordPanels) {
             wp.setAllColorBlack();
         }
+    }
+
+    // サーバーからのメッセージでWordPanelを作成して追加
+    public void addWordByMsg(String word, int[] judgment) {
+        if (word.length() != GLOBALVALS.wordLen || judgment.length != GLOBALVALS.wordLen) {
+            throw new IllegalArgumentException("文字列または判定配列の長さが不正です");
+        }
+
+        Word w = new Word(word);
+        for (int i = 0; i < GLOBALVALS.wordLen; i++) {
+            w.isCorrect[i] = judgment[i];
+        }
+
+        WordPanel wp = new WordPanel(w);
+        addWordPanel(wp);
     }
 }
 
@@ -803,6 +990,7 @@ class WordPanel extends JPanel {
 
         timer.start();
     }
+
 }
 
 class Word {
@@ -862,7 +1050,6 @@ class ResultDialog extends JDialog {
         setLocationRelativeTo(owner); // 親フレームの中央に表示
     }
 }
-
 
 class GLOBALVALS {
     public static int wordLen = 5;

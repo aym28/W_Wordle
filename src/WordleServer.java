@@ -105,8 +105,8 @@ public class WordleServer {
             boolean winA = false;
             boolean winB = false;
 
-            outA.println("------------------------------\nGame Start");
-            outB.println("------------------------------\nGame Start");
+            outA.println("Game Start");
+            outB.println("Game Start");
 
             // 3. メインゲームループ
             for (int gameCount = 0; gameCount < MAX_GAME_ROUND; gameCount++) {
@@ -155,34 +155,59 @@ public class WordleServer {
                 finalMessageA = "引き分けです。両者時間切れ。";
                 finalMessageB = "引き分けです。両者時間切れ。";
             }
-
-            outA.println(finalMessageA);
+            
             // Player A 自身のお題の結果表示
             if (!playerA.getOriginalAnswer().equals(playerA.answer)) {
-                outA.println("あなたが当てる単語は当初「" + playerA.getOriginalAnswer() + "」でしたが、カオスチェンジにより「" + playerA.answer + "」に変更されました。");
+                finalMessageA = finalMessageA.concat("/nあなたが当てる単語は当初「");
+                finalMessageA = finalMessageA.concat(playerA.getOriginalAnswer());
+                finalMessageA = finalMessageA.concat("」でしたが、カオスチェンジにより「");
+                finalMessageA = finalMessageA.concat(playerA.answer);
+                finalMessageA = finalMessageA.concat("」に変更されました。");
             } else {
-                outA.println("あなたが当てる単語は「" + playerA.answer + "」でした。");
+                finalMessageA = finalMessageA.concat("/nあなたが当てる単語は「");
+                finalMessageA = finalMessageA.concat(playerA.answer);
+                finalMessageA = finalMessageA.concat("」でした。");
             }
             // Player A にとっての相手のお題の結果表示
             if (!playerB.getOriginalAnswer().equals(playerB.answer)) {
-                outA.println("相手が当てる単語は当初「" + playerB.getOriginalAnswer() + "」でしたが、カオスチェンジにより「" + playerB.answer + "」に変更されました。");
+                finalMessageA = finalMessageA.concat("/n相手が当てる単語は当初「");
+                finalMessageA = finalMessageA.concat(playerB.getOriginalAnswer());
+                finalMessageA = finalMessageA.concat("」でしたが、カオスチェンジにより「");
+                finalMessageA = finalMessageA.concat(playerB.answer);
+                finalMessageA = finalMessageA.concat("」に変更されました。");
             } else {
-                outA.println("相手が当てる単語は「" + playerB.answer + "」でした。");
+                finalMessageA = finalMessageA.concat("/n相手が当てる単語は「");
+                finalMessageA = finalMessageA.concat(playerB.answer);
+                finalMessageA = finalMessageA.concat("」でした。");
             }
+            outA.println(finalMessageA);
 
-            outB.println(finalMessageB);
+            
             // Player B 自身のお題の結果表示
             if (!playerB.getOriginalAnswer().equals(playerB.answer)) {
-                outB.println("あなたが当てる単語は当初「" + playerB.getOriginalAnswer() + "」でしたが、カオスチェンジにより「" + playerB.answer + "」に変更されました。");
+                finalMessageB = finalMessageB.concat("/nあなたが当てる単語は当初「");
+                finalMessageB = finalMessageB.concat(playerB.getOriginalAnswer());
+                finalMessageB = finalMessageB.concat("」でしたが、カオスチェンジにより「");
+                finalMessageB = finalMessageB.concat(playerB.answer);
+                finalMessageB = finalMessageB.concat("」に変更されました。");
             } else {
-                outB.println("あなたが当てる単語は「" + playerB.answer + "」でした。");
+                finalMessageB = finalMessageB.concat("/nあなたが当てる単語は「");
+                finalMessageB = finalMessageB.concat(playerB.answer);
+                finalMessageB = finalMessageB.concat("」でした。");
             }
             // Player B にとっての相手のお題の結果表示
             if (!playerA.getOriginalAnswer().equals(playerA.answer)) {
-                outB.println("相手が当てる単語は当初「" + playerA.getOriginalAnswer() + "」でしたが、カオスチェンジにより「" + playerA.answer + "」に変更されました。");
+                finalMessageB = finalMessageB.concat("/n相手が当てる単語は当初「");
+                finalMessageB = finalMessageB.concat(playerA.getOriginalAnswer());
+                finalMessageB = finalMessageB.concat("」でしたが、カオスチェンジにより「");
+                finalMessageB = finalMessageB.concat(playerA.answer);
+                finalMessageB = finalMessageB.concat("」に変更されました。");
             } else {
-                outB.println("相手が当てる単語は「" + playerA.answer + "」でした。");
+                finalMessageB = finalMessageB.concat("/n相手が当てる単語は「");
+                finalMessageB = finalMessageB.concat(playerA.answer);
+                finalMessageB = finalMessageB.concat("」でした。");
             }
+            outB.println(finalMessageB);
 
             // 5. 接続を閉じる
             System.out.println("ゲームセッションを終了します。");
@@ -230,7 +255,11 @@ public class WordleServer {
 
         currentPlayer.pushAnswer(guess, gameCount);
         currentOut.println(currentPlayer.getAnswerSheetString());
-        currentOut.println("------------------------------");
+
+        // 最新の解答を答え合わせしてメッセージとして送信する
+        currentOut.println(currentPlayer.getLatestAnswerString().concat("|ANS"));
+        System.out.println(currentPlayer.getLatestAnswerString().concat("|ANS"));
+        //currentOut.println("------------------------------");
 
         // ターンが終了するこのタイミングでサイレンスを解除
         if (currentPlayer.isSilenced()) {
@@ -290,9 +319,9 @@ public class WordleServer {
 
         switch (item) {
             case SENGAN:
-                out.println("--- 相手の盤面 ---");
+                // out.println("--- 相手の盤面 ---");
                 out.println(opponent.getAnswerSheetString());
-                out.println("--------------------");
+                // out.println("--------------------");
                 break;
             case TENKEI_PIECE: {
                 Set<Character> userAnswerChars = user.answer.chars().mapToObj(c -> (char) c).collect(Collectors.toSet());

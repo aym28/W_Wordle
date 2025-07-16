@@ -130,6 +130,26 @@ class Player {
         }
         return sb.toString();
     }
+
+    // 最新の解答1件のみを取得する
+    public String getLatestAnswerString() {
+        for (int i = answerSheet.length - 1; i >= 0; i--) {
+            String word = answerSheet[i];
+            if (!word.equals("")) {
+                Word w = new Word(word);
+                w.apdateIsCorrect(new Word(this.answer));  // 正解と比較して判定配列を更新
+                StringBuilder sb = new StringBuilder();
+                sb.append(word);
+                for (int j = 0; j < GLOBALVALS.wordLen; j++) {
+                    sb.append(" ").append(w.isCorrect[j]);
+                }
+                return sb.toString();
+            }
+        }
+        return "";
+    }
+
+
     public void pushAnswer(String word, int gameCount) { this.answerSheet[gameCount] = word; }
     public boolean judgeAnswer(String word) { return (word.equals(this.answer)); }
 }
