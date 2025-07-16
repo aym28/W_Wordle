@@ -40,6 +40,10 @@ public class WordleClientThread extends Thread {
             String line;
             while ((line = in.readLine()) != null) {
 
+                if(line.contains("接続しました")) {
+                    ui.connectButton.setEnabled(false);
+                }
+
                 // メッセージ"Game Start"を受け取ったらゲーム画面に移行する
                 if(line.contains("Game Start")) {
                     ui.startGame();

@@ -13,6 +13,7 @@ public class W_Wordle_UI {
     public static int PORT = 8080;
     int x, y;
     WordleClientThread clientThread;
+    JButton connectButton;
 
     public W_Wordle_UI(int x, int y) {
         frame = new JFrame("W_Wordle");
@@ -71,7 +72,7 @@ public class W_Wordle_UI {
         gbc.gridy = 2;
         gbc.weighty = 0;
         gbc.fill = GridBagConstraints.BOTH;
-        frame.add(buttonPanel, gbc);
+        //frame.add(buttonPanel, gbc);
 
         JPanel empty = new JPanel();
         gbc.gridx = 0;
@@ -82,9 +83,9 @@ public class W_Wordle_UI {
 
         // --- 接続パネル ---
         JPanel connectPanel = new JPanel();
-        JButton connectButton = new JButton("接続");
+        connectButton = new JButton("接続");
         connectButton.addActionListener(e -> {
-            clientThread = new WordleClientThread(
+        clientThread = new WordleClientThread(
                 this, "localhost", PORT,
                 msg -> SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, msg)),
                 () -> JOptionPane.showInputDialog(frame, "お題として5文字の単語を入力してください:")
