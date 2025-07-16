@@ -51,6 +51,14 @@ public class WordleClientThread extends Thread {
                     System.out.println("ゲームを開始する処理");
                 }
 
+                if(ui.k != null) {
+                    if(line.contains("('item'でアイテムストア)")) {
+                        ui.k.getTextPanel().itemButton.setEnabled(true);
+                    } else {
+                        ui.k.getTextPanel().itemButton.setEnabled(false);
+                    }
+                }
+
                 // PROMPTがついたら入力を促す
                 if (line.endsWith("|PROMPT")) {
                     if(ui.k != null) {
