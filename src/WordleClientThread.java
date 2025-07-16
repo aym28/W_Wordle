@@ -7,6 +7,7 @@ import javax.swing.JOptionPane;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 
 public class WordleClientThread extends Thread {
     W_Wordle_UI ui;
@@ -79,13 +80,31 @@ public class WordleClientThread extends Thread {
                         ui.k.getTextPanel().stopTextEnter();
                     }
                     closableMessage.showMessage(ui.frame, line, "待機");
-                    } else {
+                } else if(line.contains("|ANS")) {  // 正解判定が返ってきたとき
+                    line = line.replace("|ANS", "");   // タグを除く
+                    System.out.println("ANS msg: " + line);
+
+                    
+                    String[] tokens = line.split(" ");
+                    String guessedWord = tokens[0];
+                    int[] judgment = new int[tokens.length - 1];
+                    for (int i = 1; i < tokens.length; i++) {
+                        judgment[i - 1] = Integer.parseInt(tokens[i]);
+                    }
+                    System.out.println("str: " + guessedWord);
+                    System.out.println("judge: " + Arrays.toString(judgment));
+                    // 解答判定のメッセージが届いたのでここでWordPanelに反映するロジックを書く
+                    // 答案文字列と判定は分別済
+                    ui.k.wordsArea.addWordByMsg(guessedWord, judgment);
+
+                } {
                     // 通常メッセージ表示
                     //messageHandler.accept(line);
                     if (ui.k != null) { // Make sure GameFrame (k) has been initialized
                         ui.k.getTextPanel().notify.setText(line);
                     }
                 }
+                
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -93,7 +112,7 @@ public class WordleClientThread extends Thread {
         }
     }
 
-    // メッセージ送信用
+    // メッセージ送信用, 推測を送信するときに使う．
     public void sendMessage(String msg) {
         if (out != null) {
             System.out.println("SendMsg");

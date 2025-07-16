@@ -105,8 +105,8 @@ public class WordleServer {
             boolean winA = false;
             boolean winB = false;
 
-            outA.println("------------------------------\nGame Start");
-            outB.println("------------------------------\nGame Start");
+            outA.println("Game Start");
+            outB.println("Game Start");
 
             // 3. メインゲームループ
             for (int gameCount = 0; gameCount < MAX_GAME_ROUND; gameCount++) {
@@ -255,6 +255,10 @@ public class WordleServer {
 
         currentPlayer.pushAnswer(guess, gameCount);
         currentOut.println(currentPlayer.getAnswerSheetString());
+
+        // 最新の解答を答え合わせしてメッセージとして送信する
+        currentOut.println(currentPlayer.getLatestAnswerString().concat("|ANS"));
+        System.out.println(currentPlayer.getLatestAnswerString().concat("|ANS"));
         //currentOut.println("------------------------------");
 
         // ターンが終了するこのタイミングでサイレンスを解除
@@ -315,9 +319,9 @@ public class WordleServer {
 
         switch (item) {
             case SENGAN:
-                out.println("--- 相手の盤面 ---");
+                // out.println("--- 相手の盤面 ---");
                 out.println(opponent.getAnswerSheetString());
-                out.println("--------------------");
+                // out.println("--------------------");
                 break;
             case TENKEI_PIECE: {
                 Set<Character> userAnswerChars = user.answer.chars().mapToObj(c -> (char) c).collect(Collectors.toSet());

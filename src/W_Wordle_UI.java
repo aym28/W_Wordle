@@ -607,10 +607,10 @@ class TextPanel extends JPanel {
                                 }
                             }
                             // wordをエリアに反映
-                            Word word = new Word(input);
-                                word.apdateIsCorrect(new Word("linux"));    //デバッグ用
-                            WordPanel wordPanel = new WordPanel(word);
-                            wordsArea.addWordPanel(wordPanel);
+                            //Word word = new Word(input);
+                            //    word.apdateIsCorrect(new Word("linux"));    //デバッグ用
+                            //WordPanel wordPanel = new WordPanel(word);
+                            //wordsArea.addWordPanel(wordPanel);
                         } else {
                             notify.setText("This word is not in List.");
                             System.out.println("out of list " + input);
@@ -700,6 +700,24 @@ class WordsArea extends JPanel {
             wp.setAllColorBlack();
         }
     }
+
+    // serverからのメッセージによってWordPanelを追加する
+    public void addWordByMsg(String word, int[] judgment) {
+        if (word.length() != GLOBALVALS.wordLen || judgment.length != GLOBALVALS.wordLen) {
+            throw new IllegalArgumentException("文字列または判定配列の長さが不正です");
+        }
+
+        // Word インスタンスを作って判定をセット
+        Word w = new Word(word);
+        for (int i = 0; i < GLOBALVALS.wordLen; i++) {
+            w.isCorrect[i] = judgment[i];
+        }
+
+        // WordPanel を作って addWordPanel で追加（アニメーション含む）
+        WordPanel wp = new WordPanel(w);
+        addWordPanel(wp);
+    }
+
 }
 
 // Word1つが表示されるエリアを作る
@@ -837,6 +855,7 @@ class WordPanel extends JPanel {
 
         timer.start();
     }
+
 }
 
 class Word {
