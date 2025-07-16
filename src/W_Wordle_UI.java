@@ -74,9 +74,58 @@ public class W_Wordle_UI {
         gbc.fill = GridBagConstraints.BOTH;
         //frame.add(buttonPanel, gbc);
 
-        JPanel empty = new JPanel();
+        JPanel explanation = new JPanel();
+        JTextPane explainText = new JTextPane();
+
+        // スタイル付きテキストの設定
+        StyledDocument doc = explainText.getStyledDocument();
+
+        // スタイル1: 通常文字
+        SimpleAttributeSet normal = new SimpleAttributeSet();
+        StyleConstants.setFontFamily(normal, "MS ゴシック");
+        StyleConstants.setFontSize(normal, 12);
+
+        // スタイル2: 太字 + 赤色
+        SimpleAttributeSet boldRed = new SimpleAttributeSet();
+        StyleConstants.setFontFamily(boldRed, "MS ゴシック");
+        StyleConstants.setFontSize(boldRed, 26);
+        StyleConstants.setBold(boldRed, true);
+        StyleConstants.setForeground(boldRed, new Color(128,0,0));
+
+        // テキストを挿入（例: "Waseda Wordleとは --About Waseda Wordle" の一部を強調）
+        try {
+doc.insertString(doc.getLength(), "\n", normal);
+doc.insertString(doc.getLength(), "Waseda Wordleとは -About Waseda\nWordle\n", boldRed);
+doc.insertString(doc.getLength(), "「Waseda Wordle（ワセダ ワードル）」は、早稲田大学の学生によって開発され\n",normal);
+doc.insertString(doc.getLength(), "た、5文字の英単語を使った2人対戦型のWordle風ゲームです。プレイヤーは交互\n",normal);
+doc.insertString(doc.getLength(), "に単語を推測し、色によるフィードバックをもとに相手より早く正解を導き出す\n",normal);
+doc.insertString(doc.getLength(), "ことを目指します。チャット接続を通じて、遠隔でも対戦可能。ヒント機能など、\n",normal);
+doc.insertString(doc.getLength(), "ゲームを盛り上げる多彩な仕掛けが搭載されています。\n", normal);
+doc.insertString(doc.getLength(), "-Waseda Wordle is a two-player competitive Wordle-style game developed by\n",normal);
+doc.insertString(doc.getLength(), "students of Waseda University. Players take turns guessing 5-letter words\n",normal);
+doc.insertString(doc.getLength(), "and aim to deduce the correct word faster than their opponent, using color-coded\n",normal);
+doc.insertString(doc.getLength(), "feedback. Online play is supported through chat-based connection, and various\n",normal);
+doc.insertString(doc.getLength(), "features such as hint items enhance the gameplay experience.\n",normal);
+            //doc.insertString(doc.getLength(), " Wordle", normal);
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
+
+        explanation.setLayout(new BorderLayout());
+        Color defaultBg = UIManager.getColor("Panel.background");
+        explainText.setBackground(defaultBg);
+        explanation.add(explainText, BorderLayout.CENTER);
+        
+        explanation.add(explainText);
         gbc.gridx = 0;
         gbc.gridy = 3;
+        gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.BOTH;
+        frame.add(explanation, gbc);
+
+        JPanel empty = new JPanel();
+        gbc.gridx = 0;
+        gbc.gridy = 4;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         frame.add(empty, gbc);
@@ -94,7 +143,7 @@ public class W_Wordle_UI {
         });
         connectPanel.add(connectButton);
         gbc.gridx = 0;
-        gbc.gridy = 4;
+        gbc.gridy = 5;
         gbc.weighty = 0;
         gbc.fill = GridBagConstraints.BOTH;
         frame.add(connectPanel, gbc);
@@ -645,6 +694,64 @@ class TextPanel extends JPanel {
         } else {
             return true;
         }
+    }
+
+    void setEndState(String str) {
+        // 全てのコンポーネントを削除
+        this.removeAll();
+
+        // レイアウトを中央揃えに設定
+        this.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(10, 0, 10, 0);
+
+        // ラベル（strで表示）
+        JLabel gameOverLabel = new JLabel(str);
+        gameOverLabel.setFont(new Font("MS ゴシック", Font.BOLD, 24));
+        gameOverLabel.setForeground(Color.RED);
+
+        gbc.gridy = 0;
+        this.add(gameOverLabel, gbc);
+
+        // ボタン2つ（終了／再挑戦）を横並びで載せるパネル
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 0)); // 横並び・間隔20px
+
+        // 終了ボタン
+        JButton exitButton = new JButton("終了");
+        exitButton.setFont(new Font("MS ゴシック", Font.PLAIN, 16));
+        exitButton.addActionListener(e -> {
+            Window window = SwingUtilities.getWindowAncestor(this);
+            if (window != null) {
+                window.dispose(); // ウィンドウを閉じる
+            }
+        });
+
+        // 再挑戦ボタン
+        JButton retryButton = new JButton("タイトルに戻る");
+        retryButton.setFont(new Font("MS ゴシック", Font.PLAIN, 16));
+        retryButton.addActionListener(e -> {
+            // 新しいUIを起動（例として座標は 100, 100 に固定）
+            new W_Wordle_UI(100, 100);
+            Window window = SwingUtilities.getWindowAncestor(this);
+            if (window != null) {
+                window.dispose(); // 古いウィンドウを閉じる
+            }
+        });
+
+        // ボタン追加
+        buttonPanel.add(exitButton);
+        buttonPanel.add(retryButton);
+
+        // ボタンパネルをパネル本体に追加
+        gbc.gridy = 1;
+        this.add(buttonPanel, gbc);
+
+        // 再描画
+        this.revalidate();
+        this.repaint();
     }
 
     void stopTextEnter() {

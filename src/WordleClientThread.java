@@ -82,7 +82,13 @@ public class WordleClientThread extends Thread {
                 } else if(line.contains("勝利") || line.contains("負け") || line.contains("引き分け")) {
                     closableMessage.closeAll();
                     if(ui.k != null) {
-                        ui.k.getTextPanel().stopTextEnter();
+                        if(line.contains("勝利")) {
+                            ui.k.getTextPanel().setEndState("勝利");
+                        } else if(line.contains("負け")) {
+                            ui.k.getTextPanel().setEndState("敗北");
+                        } else if(line.contains("引き分け")) {
+                            ui.k.getTextPanel().setEndState("引き分け");
+                        }
                     }
                     line = line.replace("/n","\n"); // 改行を復号
                     
