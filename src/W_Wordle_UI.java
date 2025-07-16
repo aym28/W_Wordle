@@ -522,7 +522,7 @@ class TextPanel extends JPanel {
     JPanel wordsArea;  // 入力済みword表示エリア
     WordleClientThread clientThread; // メッセージ送信用
     JButton itemButton;
-    
+
     TextPanel(KeyBoardPanel k, WordList wordList, WordsArea wordsArea, WordleClientThread clientThread) {
         this.clientThread = clientThread;
         this.keyBoardPanel = k;
@@ -531,123 +531,99 @@ class TextPanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.EAST;
-        add(label,gbc);
+        add(label, gbc);
 
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.CENTER;
-        add(textArea,gbc);
+        add(textArea, gbc);
 
         itemButton = new JButton("アイテム購入");
-        itemButton.addActionListener(new ItemButtonListener(itemButton));
-        itemButton.setEnabled(false); 
+        itemButton.setEnabled(false);
+        itemButton.addActionListener(e -> {
+            clientThread.sendMessage("item");
+            System.out.println("item");
+            new ItemShop(clientThread, this);
+        });
 
         gbc.gridx = 0;
         gbc.gridy = 2;
+        gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
-        add(itemButton,gbc);
+        add(itemButton, gbc);
 
+        textArea.setPreferredSize(new Dimension(100, 20));
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;  
-        //add(notify,gbc);
-        textArea.setPreferredSize(new Dimension(100,20));
+        gbc.anchor = GridBagConstraints.CENTER;
 
-
-        // ここで6文字制限を追加
+        // 入力制限
         ((AbstractDocument) textArea.getDocument()).setDocumentFilter(new DocumentFilter() {
             @Override
-            public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
-                    throws BadLocationException {
+            public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
                 if (fb.getDocument().getLength() + string.length() <= 5) {
                     super.insertString(fb, offset, string, attr);
-                } // 6文字目以降は無視
+                }
             }
-        @Override
-            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
-                    throws BadLocationException {
+
+            @Override
+            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
                 int currentLength = fb.getDocument().getLength();
                 int overLimit = (currentLength + text.length()) - 5 - length;
                 if (overLimit <= 0) {
                     super.replace(fb, offset, length, text, attrs);
-                } // 6文字目以降は無視
+                }
             }
         });
 
-        // 改行禁止
-        // エンターでの文字列取得
+        // 入力キー処理
         textArea.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    e.consume(); // 改行を防ぐ
+                    e.consume();
                     String input = textArea.getText();
 
-                    // ここら辺で入力文字列を処理する．
-                    // 範囲外文字の拒否と大文字小文字の処理が必要
-                    if(input.length() == 5) {
-                        // 5文字のWordの入力を受け付ける
-                        System.out.println("入力された文字列: " + input);
+                    if (input.length() == 5) {
                         input_char = input.toCharArray();
                         textArea.setText("");
 
                         isAcceptInGram = true;
-                        for(int i = 0; i < 5; i++) {
+                        for (int i = 0; i < 5; i++) {
                             int j = (int) input_char[i];
-                            
-                            if(isInputAccepted(j)){
+                            if (isInputAccepted(j)) {
                                 notify.setText("Input is Accepted");
-                                // 小文字入力にも対応
-                                if(97 <= j && j <= 122) input_char[i] = (char) (j - 32);
-                                System.out.println("char" + i + "," + input_char[i]);
+                                if (97 <= j && j <= 122) input_char[i] = (char) (j - 32);
                             } else {
                                 isAcceptInGram = false;
-                                //System.out.println("Error: 入力された文字列が[A-Za-z]^5に入っていません");
-                                //notify.setText("Error: 入力された文字列が[A-Za-z]^5に入っていません");
-                                clientThread.closableMessage.showMessage(k,"入力された文字列が[A-Za-z]^5に入っていません","Error");
+                                clientThread.closableMessage.showMessage(k, "入力された文字列が[A-Za-z]^5に入っていません", "Error");
                                 break;
                             }
                         }
                     } else {
                         isAcceptInGram = false;
-                        System.out.println("Error: 入力された文字列の長さが適合しません");
                         notify.setText("Error: 入力された文字列の長さが適合しません");
-                        clientThread.closableMessage.showMessage(k,"入力された文字列の長さが適合しません","Error");
+                        clientThread.closableMessage.showMessage(k, "入力された文字列の長さが適合しません", "Error");
                     }
-                    if(isAcceptInGram) {
-                        // wordListが小文字で書かれているので小文字に変換
-                        for(int i = 0; i < 5; i++) {
-                            input_char[i] = (char) ((int) input_char[i] + ((int) 'a') - ((int) 'A'));
+
+                    if (isAcceptInGram) {
+                        for (int i = 0; i < 5; i++) {
+                            input_char[i] = (char) ((int) input_char[i] + ('a' - 'A'));
                         }
                         input = new String(input_char);
 
-                        // WordListのインスタンスが立っているので対応したい
-                        if(wordList.isInList(input)) {
-                            // (*)メッセージを送る
-                            System.out.println("sendMessage: " + input);
+                        if (wordList.isInList(input)) {
                             clientThread.sendMessage(input);
-                            System.out.println("in list! " + input);
-                            // ひとまず，入力された文字列すべてをacceptして，色を反映
-                            for(int i = 0; i < 5; i++){
-                                char tmp_c = (char)((int)input_char[i] + (int)'A' - (int)'a');
-                                if(k.isUpdated(tmp_c) == false) {
-                                    // キーボード画面に変化がある．判定と合わせて色に変化を付ける
-                                    k.updateCol(tmp_c,Color.GRAY);
-                                } else {
-                                    // 最終的に消してOK
-                                    System.out.println("Already updated");
+                            for (int i = 0; i < 5; i++) {
+                                char tmp_c = (char) ((int) input_char[i] + 'A' - 'a');
+                                if (!k.isUpdated(tmp_c)) {
+                                    k.updateCol(tmp_c, Color.GRAY);
                                 }
                             }
-                            // wordをエリアに反映
-                            //Word word = new Word(input);
-                            //    word.apdateIsCorrect(new Word("linux"));    //デバッグ用
-                            //WordPanel wordPanel = new WordPanel(word);
-                            //wordsArea.addWordPanel(wordPanel);
                         } else {
                             notify.setText("This word is not in List.");
-                            System.out.println("out of list " + input);
-                            clientThread.closableMessage.showMessage(k,"単語リストにありません","Woops!");
+                            clientThread.closableMessage.showMessage(k, "単語リストにありません", "Woops!");
                         }
                     }
                 }
@@ -655,27 +631,18 @@ class TextPanel extends JPanel {
         });
     }
 
-    // inputの文字が[A-Za-z]か判定
     boolean isInputAccepted(int input_num) {
-        if((input_num < 97 || input_num > 122) && (input_num < 65 || input_num > 90)) {
-            return false;
-        } else {
-            return true;
-        }
+        return (input_num >= 65 && input_num <= 90) || (input_num >= 97 && input_num <= 122);
     }
 
     void setEndState(String str) {
-        // 全てのコンポーネントを削除
         this.removeAll();
-
-        // レイアウトを中央揃えに設定
         this.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.anchor = GridBagConstraints.CENTER;
         gbc.insets = new Insets(10, 0, 10, 0);
 
-        // ラベル（strで表示）
         JLabel gameOverLabel = new JLabel(str);
         gameOverLabel.setFont(new Font("MS ゴシック", Font.BOLD, 24));
         gameOverLabel.setForeground(Color.RED);
@@ -683,41 +650,29 @@ class TextPanel extends JPanel {
         gbc.gridy = 0;
         this.add(gameOverLabel, gbc);
 
-        // ボタン2つ（終了／再挑戦）を横並びで載せるパネル
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 0)); // 横並び・間隔20px
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
 
-        // 終了ボタン
         JButton exitButton = new JButton("終了");
         exitButton.setFont(new Font("MS ゴシック", Font.PLAIN, 16));
         exitButton.addActionListener(e -> {
             Window window = SwingUtilities.getWindowAncestor(this);
-            if (window != null) {
-                window.dispose(); // ウィンドウを閉じる
-            }
+            if (window != null) window.dispose();
         });
 
-        // 再挑戦ボタン
         JButton retryButton = new JButton("タイトルに戻る");
         retryButton.setFont(new Font("MS ゴシック", Font.PLAIN, 16));
         retryButton.addActionListener(e -> {
-            // 新しいUIを起動（例として座標は 100, 100 に固定）
             new W_Wordle_UI(100, 100);
             Window window = SwingUtilities.getWindowAncestor(this);
-            if (window != null) {
-                window.dispose(); // 古いウィンドウを閉じる
-            }
+            if (window != null) window.dispose();
         });
 
-        // ボタン追加
         buttonPanel.add(exitButton);
         buttonPanel.add(retryButton);
 
-        // ボタンパネルをパネル本体に追加
         gbc.gridy = 1;
         this.add(buttonPanel, gbc);
 
-        // 再描画
         this.revalidate();
         this.repaint();
     }
@@ -726,12 +681,9 @@ class TextPanel extends JPanel {
         System.out.println("stop");
         textArea.setBackground(Color.GRAY);
         textArea.setForeground(Color.WHITE);
-        SwingUtilities.invokeLater(() -> {
-            textArea.setText("Wait..."); // ユーザーにより明確な指示
-        });
+        SwingUtilities.invokeLater(() -> textArea.setText("Wait..."));
         textArea.setEditable(false);
         textArea.repaint();
-        //textArea.setForeground(Color.GRAY);  // 入力不可を視覚的に示す（任意）
     }
 
     void resumeTextEnter() {
@@ -739,28 +691,10 @@ class TextPanel extends JPanel {
         textArea.setBackground(Color.WHITE);
         textArea.setForeground(Color.BLACK);
         textArea.setEditable(true);
-        SwingUtilities.invokeLater(() -> {
-            textArea.setText(""); // 入力欄をクリア（または必要な初期値）
-        });
-        textArea.setForeground(Color.BLACK); // 色を戻す（任意）
-    }
-
-    public class ItemButtonListener implements ActionListener {
-        JButton b;
-
-        ItemButtonListener(JButton b) {
-            this.b = b;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (e.getSource() == b) {
-                clientThread.sendMessage("item");
-                System.out.println("item");
-            }
-        }
+        SwingUtilities.invokeLater(() -> textArea.setText(""));
     }
 }
+
 
 class WordsArea extends JPanel {
     private JPanel contentPanel;
@@ -1017,11 +951,14 @@ class GLOBALVALS {
     public static boolean isEdit = false;    // 開発者向けオプション
 }
 
-
 class ItemShop{            //アイテムショップフレーム
     JFrame frame;
+    WordleClientThread wordleClientThread;
+    TextPanel textPanel;
 
-    ItemShop() {
+    ItemShop(WordleClientThread wordleClientThread, TextPanel textPanel) {
+        this.wordleClientThread = wordleClientThread;
+        this.textPanel = textPanel;
         frame = new JFrame("ItemShop");
         frame.setLayout(new GridBagLayout());
         GridBagConstraints gbcFrame = new GridBagConstraints();
@@ -1198,7 +1135,23 @@ class ItemShop{            //アイテムショップフレーム
             });
         frame.add(itembutton8, gbcFrame);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        // 閉じる直前にメソッドを1つ実行
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                // 任意の処理をここで実行
+                wordleClientThread.sendMessage("9");
+                textPanel.resumeTextEnter();    // 入力の受付を再開
+                textPanel.itemButton.setEnabled(true);
+            }
+        });
+
         frame.setSize(900, 150);
         frame.setVisible(true);
+    }
+
+    void closeAction() {
+
     }
 }

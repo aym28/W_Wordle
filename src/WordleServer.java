@@ -275,17 +275,17 @@ public class WordleServer {
      */
     private static void handleItemStore(Player user, Player opponent, PrintWriter out, BufferedReader in) throws IOException {
         if (!user.canUseItem()) {
-            out.println("エラー: アイテムは使用できません (今ターン使用済み or 封印されています)");
+            out.println("エラー: アイテムは使用できません (今ターン使用済み or 封印されています)|ITEM");
             return;
         }
 
-        out.println("\n--- アイテムストア (購入すると即座に使用します) ---");
+        out.println("\n--- アイテムストア (購入すると即座に使用します) ---|ITEM");
         List<Item> shopList = List.of(Item.values());
         for (int i = 0; i < shopList.size(); i++) {
             Item item = shopList.get(i);
-            out.printf("%d: %s (%d P) - %s\n", i + 1, item.getName(), item.getCost(), item.getDescription());
+            //out.printf("%d: %s (%d P) - %s\n", i + 1, item.getName(), item.getCost(), item.getDescription());
         }
-        out.println("使用するアイテムの番号を入力してください (戻る場合は'0')|PROMPT");
+        out.println("使用するアイテムの番号を入力してください (戻る場合は'0')|ITEM|PROMPT");
 
         String itemNumberStr = in.readLine();
         try {
@@ -294,7 +294,7 @@ public class WordleServer {
                 Item itemToUse = shopList.get(itemNumber - 1);
 
                 if (itemToUse == Item.CHAOS_CHANGE && user.hasUsedChaosChange()) {
-                    out.println("エラー: カオスチェンジは1ゲームに1回しか使用できません。");
+                    out.println("エラー: カオスチェンジは1ゲームに1回しか使用できません。|ITEM");
                     return;
                 }
 
@@ -303,11 +303,11 @@ public class WordleServer {
                     user.consumeItemTurn();
                     executeItemEffect(user, opponent, itemToUse, out, in);
                 } else {
-                    out.println("ポイントが足りません。");
+                    out.println("ポイントが足りません。|ITEM");
                 }
             }
         } catch (NumberFormatException e) {
-            out.println("無効な入力です。");
+            out.println("無効な入力です。|ITEM");
         }
     }
 

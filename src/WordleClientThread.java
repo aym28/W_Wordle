@@ -59,6 +59,14 @@ public class WordleClientThread extends Thread {
                     }
                 }
 
+                // アイテムショップの処理
+                if(line.contains("|ITEM")) {
+                    line = line.replace("|ITEM","");
+                    ui.k.getTextPanel().stopTextEnter();
+                    continue;
+                }
+                
+
                 // PROMPTがついたら入力を促す
                 if (line.endsWith("|PROMPT")) {
                     if(ui.k != null) {
