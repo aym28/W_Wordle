@@ -57,23 +57,6 @@ public class W_Wordle_UI {
         comPanel.add(portSetButton);
         frame.add(comPanel, gbc);
 
-        // --- ボタンパネル ---
-        JPanel buttonPanel = new JPanel();
-        JButton b = new JButton("開始(非接続)");
-        JButton result_dbg = new JButton("勝敗画面開発");
-        Listener listener = new Listener(frame, b);
-        WinListener winl = new WinListener(frame, result_dbg);
-        result_dbg.addActionListener(winl);
-        b.addActionListener(listener);
-        buttonPanel.add(b);
-        buttonPanel.add(result_dbg);
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.weighty = 0;
-        gbc.fill = GridBagConstraints.BOTH;
-        //frame.add(buttonPanel, gbc);
-
         JPanel explanation = new JPanel();
         JTextPane explainText = new JTextPane();
 
@@ -209,23 +192,6 @@ doc.insertString(doc.getLength(), "features such as hint items enhance the gamep
                 k = new GameFrame(frame, clientThread);
                 frame.revalidate();
                 frame.repaint();
-            }
-        }
-    }
-
-    // 勝敗画面開発用リスナー（簡易）
-    public class WinListener implements ActionListener {
-        JFrame frame;
-        JButton result_dbg;
-        WinListener(JFrame frame, JButton b) {
-            this.frame = frame;
-            this.result_dbg = b;
-        }
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (e.getSource() == result_dbg) {
-                ResultDialog r = new ResultDialog(frame, "勝利！", true);
-                r.setVisible(true);
             }
         }
     }
@@ -1025,29 +991,6 @@ class Word {
                 }
             }
         }
-    }
-}
-
-class ResultDialog extends JDialog {
-    public ResultDialog(JFrame owner, String message, boolean isWin) {
-        super(owner, "ゲーム結果", true); // true でモーダルにする
-
-        JLabel label = new JLabel(message, SwingConstants.CENTER);
-        label.setFont(new Font("SansSerif", Font.BOLD, 18));
-        label.setForeground(isWin ? Color.GREEN.darker() : Color.RED);
-        label.setPreferredSize(new Dimension(250, 80));
-        add(label, BorderLayout.CENTER);
-
-        JButton okButton = new JButton("OK");
-        // OKを押したらどこに遷移する？
-        okButton.addActionListener(e -> System.exit(0));
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add(okButton);
-        add(buttonPanel, BorderLayout.SOUTH);
-
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        pack();
-        setLocationRelativeTo(owner); // 親フレームの中央に表示
     }
 }
 

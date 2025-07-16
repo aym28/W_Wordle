@@ -196,8 +196,7 @@ class ClosableMessage {
 
         dialog.setVisible(true);
         dialogs.add(dialog);
-}
-
+    }
 
     public void closeAll() {
         for (JDialog d : dialogs) {
