@@ -71,7 +71,7 @@ public class WordleClientThread extends Thread {
                         closableMessage.closeAll();
                         closableMessage.showMessage(ui.frame, "推測する単語を入力してください。('item'でアイテムストア)", "あなたのターンです");
                     }
-                } else if(line.contains("勝利") || line.contains("負け")) {
+                } else if(line.contains("勝利") || line.contains("負け") || line.contains("引き分け")) {
                     closableMessage.closeAll();
                     if(ui.k != null) {
                         ui.k.getTextPanel().stopTextEnter();

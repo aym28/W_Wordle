@@ -506,6 +506,7 @@ class TextPanel extends JPanel {
     boolean isAcceptInGram;
     JPanel wordsArea;  // 入力済みword表示エリア
     WordleClientThread clientThread; // メッセージ送信用
+    JButton itemButton;
     
     TextPanel(KeyBoardPanel k, WordList wordList, WordsArea wordsArea, WordleClientThread clientThread) {
         this.clientThread = clientThread;
@@ -521,6 +522,13 @@ class TextPanel extends JPanel {
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.CENTER;
         add(textArea,gbc);
+
+        itemButton = new JButton("アイテム購入");
+        itemButton.setEnabled(false);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        add(itemButton,gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -935,7 +943,6 @@ class ResultDialog extends JDialog {
         setLocationRelativeTo(owner); // 親フレームの中央に表示
     }
 }
-
 
 class GLOBALVALS {
     public static int wordLen = 5;
