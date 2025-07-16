@@ -167,7 +167,7 @@ public class WordleClientThread extends Thread {
         }
     }
 
-    // メッセージ送信用, 推測を送信するときに使う．
+    // メッセージ送信用, 推測とアイテムを送信するときに使う．
     public void sendMessage(String msg) {
         if (out != null) {
             System.out.println("SendMsg");

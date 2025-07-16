@@ -539,7 +539,9 @@ class TextPanel extends JPanel {
         add(textArea,gbc);
 
         itemButton = new JButton("アイテム購入");
-        itemButton.setEnabled(false);
+        itemButton.addActionListener(new ItemButtonListener(itemButton));
+        itemButton.setEnabled(false); 
+
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.anchor = GridBagConstraints.CENTER;
@@ -741,6 +743,22 @@ class TextPanel extends JPanel {
             textArea.setText(""); // 入力欄をクリア（または必要な初期値）
         });
         textArea.setForeground(Color.BLACK); // 色を戻す（任意）
+    }
+
+    public class ItemButtonListener implements ActionListener {
+        JButton b;
+
+        ItemButtonListener(JButton b) {
+            this.b = b;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (e.getSource() == b) {
+                clientThread.sendMessage("item");
+                System.out.println("item");
+            }
+        }
     }
 }
 
