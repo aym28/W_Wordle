@@ -8,6 +8,8 @@ import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
+import javax.swing.JFrame;
+import java.awt.Color;
 
 public class WordleClientThread extends Thread {
     W_Wordle_UI ui;
@@ -16,6 +18,7 @@ public class WordleClientThread extends Thread {
     private Consumer<String> messageHandler;
     private Supplier<String> inputSupplier;
     PrintWriter out;
+    ClosableMessage closableMessage;
 
     public WordleClientThread(W_Wordle_UI ui, String host, int port, Consumer<String> messageHandler, Supplier<String> inputSupplier) {
         this.ui = ui;
@@ -27,7 +30,7 @@ public class WordleClientThread extends Thread {
 
     @Override
     public void run() {
-        ClosableMessage closableMessage = new ClosableMessage();
+        closableMessage = new ClosableMessage();
         try (
             Socket socket = new Socket(host, port);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
@@ -82,6 +85,9 @@ public class WordleClientThread extends Thread {
                     closableMessage.showMessage(ui.frame, line, "待機");
                 } else if(line.contains("|ANS")) {  // 正解判定が返ってきたとき
                     line = line.replace("|ANS", "");   // タグを除く
+                    if(ui.k != null) {
+                        ui.k.getTextPanel().stopTextEnter();
+                    }
                     System.out.println("ANS msg: " + line);
 
                     
@@ -95,14 +101,45 @@ public class WordleClientThread extends Thread {
                     System.out.println("judge: " + Arrays.toString(judgment));
                     // 解答判定のメッセージが届いたのでここでWordPanelに反映するロジックを書く
                     // 答案文字列と判定は分別済
+                    //ui.k.wordsArea.scrollToBottom();
                     ui.k.wordsArea.addWordByMsg(guessedWord, judgment);
+
+                    // キーボードにも反映する
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        // スレッドが中断されたらループを抜ける
+                        break;
+                    }
+                    for(int i = 0; i < GLOBALVALS.wordLen; i++) {
+                        char c = guessedWord.toUpperCase().toCharArray()[i];
+                        switch (judgment[i]) {
+                            case 0:
+                                ui.k.getKeyBoardPanel().updateCol(c,Color.GREEN);
+                                break;
+                            case 1:
+                                ui.k.getKeyBoardPanel().updateCol(c, new Color(255, 204, 0));
+                                break;
+                            case -1:
+                                ui.k.getKeyBoardPanel().updateCol(c, Color.BLACK);
+                                break;
+                        }
+                    }
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        // スレッドが中断されたらループを抜ける
+                        break;
+                    }
 
                 } {
                     // 通常メッセージ表示
                     //messageHandler.accept(line);
-                    if (ui.k != null) { // Make sure GameFrame (k) has been initialized
-                        ui.k.getTextPanel().notify.setText(line);
-                    }
+                    //if (ui.k != null) { // Make sure GameFrame (k) has been initialized
+                        //ui.k.getTextPanel().notify.setText(line);
+                    //}
                 }
                 
             }
@@ -129,10 +166,20 @@ class ClosableMessage {
     public void showMessage(Component parent, String message, String title) {
         JOptionPane pane = new JOptionPane(message, JOptionPane.INFORMATION_MESSAGE);
         JDialog dialog = pane.createDialog(parent, title);
-        dialog.setModal(false); // モードレスで表示
+        dialog.setModal(false);
+
+        // 位置調整：frameの下側に表示（親コンポーネントの下中央あたり）
+        if (parent instanceof JFrame) {
+            JFrame frame = (JFrame) parent;
+            int x = frame.getX() + frame.getWidth() / 2 - dialog.getWidth() / 2;
+            int y = frame.getY() + frame.getHeight() - 200; // 下から50px上あたり
+            dialog.setLocation(x, y);
+        }
+
         dialog.setVisible(true);
         dialogs.add(dialog);
-    }
+}
+
 
     public void closeAll() {
         for (JDialog d : dialogs) {

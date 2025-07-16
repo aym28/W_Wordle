@@ -87,7 +87,7 @@ public class W_Wordle_UI {
             clientThread = new WordleClientThread(
                 this, "localhost", PORT,
                 msg -> SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, msg)),
-                () -> JOptionPane.showInputDialog(frame, "サーバーからの入力要求です。5文字の単語を入力してください:")
+                () -> JOptionPane.showInputDialog(frame, "お題として5文字の単語を入力してください:")
             );
             clientThread.start();
         });
@@ -230,6 +230,7 @@ class GameFrame {
     WordsArea wordsArea;
     TextPanel textPanel;
     WordleClientThread clientThread;
+    KeyBoardPanel k;
 
     public GameFrame(JFrame frame, WordleClientThread clientThread) {
         this.clientThread = clientThread;
@@ -255,22 +256,20 @@ class GameFrame {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbcPanel = new GridBagConstraints();
 
-        // --- WordsArea をスクロール対応で追加 ---
+        // --- WordsArea を直接追加（WordsArea は自身でスクロールを持つ） ---
         wordsArea = new WordsArea();
-        JScrollPane scrollPane = new JScrollPane(wordsArea);
-        scrollPane.setPreferredSize(new Dimension(400, 200));
-        scrollPane.setMinimumSize(new Dimension(400, 200));
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        wordsArea.setPreferredSize(new Dimension(400, 200));
+        wordsArea.setMinimumSize(new Dimension(400, 200));
 
         gbcPanel.gridx = 0;
         gbcPanel.gridy = 0;
         gbcPanel.weightx = 1.0;
         gbcPanel.weighty = 1.0; // WordsArea は高さを自由に伸ばせる
         gbcPanel.fill = GridBagConstraints.BOTH;
-        panel.add(scrollPane, gbcPanel);
+        panel.add(wordsArea, gbcPanel);
 
         // --- KeyBoardPanel（固定サイズ） ---
-        KeyBoardPanel k = new KeyBoardPanel(frame);
+        k = new KeyBoardPanel(frame);
         k.setPreferredSize(new Dimension(400, 130));
         k.setMinimumSize(new Dimension(400, 130));
 
@@ -335,7 +334,12 @@ class GameFrame {
     public TextPanel getTextPanel() {
         return textPanel;
     }
+
+    public KeyBoardPanel getKeyBoardPanel() {
+        return k;
+    }
 }
+
 
 class KeyBoardPanel extends JPanel {
     Color[] usedCharCol = new Color[100];
@@ -521,7 +525,7 @@ class TextPanel extends JPanel {
         gbc.gridy = 1;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;  
-        add(notify,gbc);
+        //add(notify,gbc);
         textArea.setPreferredSize(new Dimension(100,20));
 
 
@@ -573,14 +577,17 @@ class TextPanel extends JPanel {
                                 System.out.println("char" + i + "," + input_char[i]);
                             } else {
                                 isAcceptInGram = false;
-                                System.out.println("Error: 入力された文字列が[A-Za-z]^5に入っていません");
-                                notify.setText("Error: 入力された文字列が[A-Za-z]^5に入っていません");
+                                //System.out.println("Error: 入力された文字列が[A-Za-z]^5に入っていません");
+                                //notify.setText("Error: 入力された文字列が[A-Za-z]^5に入っていません");
+                                clientThread.closableMessage.showMessage(k,"入力された文字列が[A-Za-z]^5に入っていません","Error");
+                                break;
                             }
                         }
                     } else {
                         isAcceptInGram = false;
                         System.out.println("Error: 入力された文字列の長さが適合しません");
                         notify.setText("Error: 入力された文字列の長さが適合しません");
+                        clientThread.closableMessage.showMessage(k,"入力された文字列の長さが適合しません","Error");
                     }
                     if(isAcceptInGram) {
                         // wordListが小文字で書かれているので小文字に変換
@@ -614,6 +621,7 @@ class TextPanel extends JPanel {
                         } else {
                             notify.setText("This word is not in List.");
                             System.out.println("out of list " + input);
+                            clientThread.closableMessage.showMessage(k,"単語リストにありません","Woops!");
                         }
                     }
                 }
@@ -656,68 +664,79 @@ class TextPanel extends JPanel {
 
 class WordsArea extends JPanel {
     private JPanel contentPanel;
+    private JScrollPane scrollPane;
 
     // WordPanelのインスタンスを管理するためのリスト
     private List<WordPanel> wordPanels = new ArrayList<>();
 
-    WordsArea() {
+    public WordsArea() {
         setLayout(new BorderLayout());
 
-        // ラベルを上に追加
+        // 上部のラベル
         JLabel label = new JLabel("入力したWord", SwingConstants.CENTER);
         add(label, BorderLayout.NORTH);
 
-        // WordPanelを並べるパネル
+        // WordPanelを縦に並べるパネル
         contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(Color.GRAY);
 
-        // スクロール対応（スクロール非表示でもOK）
-        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        // contentPanelをスクロール可能にするスクロールペイン
+        scrollPane = new JScrollPane(contentPanel);
         scrollPane.setBorder(null);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         add(scrollPane, BorderLayout.CENTER);
     }
 
+    // 一番下までスクロールするメソッド
+    public void scrollToBottom() {
+        SwingUtilities.invokeLater(() -> {
+            JScrollBar verticalBar = scrollPane.getVerticalScrollBar();
+            verticalBar.setValue(verticalBar.getMaximum());
+        });
+    }
+
+    // WordPanelを追加するメソッド
     public void addWordPanel(WordPanel wp) {
-        // インスタンスリストに追加
         wordPanels.add(wp);
 
-        // 高さが 0 のままだと表示されないので明示的にサイズを設定
-        wp.setMaximumSize(new Dimension(400, 70));  // 横幅制限あり
-        wp.setPreferredSize(new Dimension(400, 70)); // 必須
-        wp.setAlignmentX(Component.CENTER_ALIGNMENT); // 中央寄せ（任意）
+        // 横幅はスクロール領域に合わせて固定（必要に応じて調整）
+        wp.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70)); // 横幅は制限せず、縦70に固定
+        wp.setPreferredSize(new Dimension(400, 70));
+        wp.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         contentPanel.add(wp);
         contentPanel.revalidate();
         contentPanel.repaint();
-        wp.flipWord();
+
+        wp.flipWord(); // アニメーション等（もしあれば）
+
+        scrollToBottom();
     }
 
-    // WordPanelを全て黒くする
+    // すべてのWordPanelの色を黒にする例
     public void makeAllBlack() {
         for (WordPanel wp : wordPanels) {
             wp.setAllColorBlack();
         }
     }
 
-    // serverからのメッセージによってWordPanelを追加する
+    // サーバーからのメッセージでWordPanelを作成して追加
     public void addWordByMsg(String word, int[] judgment) {
         if (word.length() != GLOBALVALS.wordLen || judgment.length != GLOBALVALS.wordLen) {
             throw new IllegalArgumentException("文字列または判定配列の長さが不正です");
         }
 
-        // Word インスタンスを作って判定をセット
         Word w = new Word(word);
         for (int i = 0; i < GLOBALVALS.wordLen; i++) {
             w.isCorrect[i] = judgment[i];
         }
 
-        // WordPanel を作って addWordPanel で追加（アニメーション含む）
         WordPanel wp = new WordPanel(w);
         addWordPanel(wp);
     }
-
 }
 
 // Word1つが表示されるエリアを作る
