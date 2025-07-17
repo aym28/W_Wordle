@@ -386,11 +386,27 @@ public class WordleServer {
                         if (vowels.indexOf(c) != -1) foundChars.add(c);
                     }
                     str_out = str_out + ("結果(母音): " + foundChars);
+                    char[] chars = new char[foundChars.size()];
+                    int i = 0;
+                    for (char c : foundChars) {
+                        chars[i++] = c;
+                    }
+                    for(int j = 0 ; j < foundChars.size(); j++) {
+                        out.println(chars[j] + " YELLOW |REVEALEDCHAR");
+                    }
                 } else if ("2".equals(choice)) {
                     for (char c : user.answer.toCharArray()) {
                         if (vowels.indexOf(c) == -1) foundChars.add(c);
                     }
                     str_out = str_out + ("結果(子音): " + foundChars);
+                    char[] chars = new char[foundChars.size()];
+                    int i = 0;
+                    for (char c : foundChars) {
+                        chars[i++] = c;
+                    }
+                    for(int j = 0 ; j < foundChars.size(); j++) {
+                        out.println(chars[j] + " YELLOW |REVEALEDCHAR");
+                    }
                 } else {
                     str_out = str_out + ("無効な選択です。");
                 }
@@ -402,8 +418,10 @@ public class WordleServer {
                 if (charToAsk != null && charToAsk.length() == 1) {
                     if (user.answer.contains(charToAsk.toLowerCase())) {
                         str_out = str_out + ("結果: その文字はあなたの答えに【含まれています】(黄色)/n|ITEM");
+                        out.println(charToAsk.toLowerCase().toCharArray()[0] + " YELLOW |REVEALEDCHAR");
                     } else {
                         str_out = str_out + ("結果: その文字はあなたの答えに【含まれていません】(黒)/n|ITEM");
+                        out.println(charToAsk.toLowerCase().toCharArray()[0] + " BLACK |REVEALEDCHAR");
                     }
                 } else {
                     str_out = str_out + ("入力が無効です。/n|ITEM");
