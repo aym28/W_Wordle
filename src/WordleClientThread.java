@@ -19,6 +19,11 @@ public class WordleClientThread extends Thread {
     private Supplier<String> inputSupplier;
     PrintWriter out;
     ClosableMessage closableMessage;
+    ItemShop itemShop;
+
+    public void setItemShop(ItemShop itemShop) {
+        this.itemShop = itemShop;
+    }
 
     public WordleClientThread(W_Wordle_UI ui, String host, int port, Consumer<String> messageHandler, Supplier<String> inputSupplier) {
         this.ui = ui;
@@ -39,6 +44,41 @@ public class WordleClientThread extends Thread {
             out = out_tmp;
             String line;
             while ((line = in.readLine()) != null) {
+                line = line.replace("/n","\n");
+
+                if(line.contains("|INPUTREQ")) {
+                    line = line.replace("|INPUTREQ","");
+                    line = line.replace("|PROMPT","");
+                    line = line.replace("|ITEM","");
+                    System.out.println("INPUTREQ");
+                    String str = JOptionPane.showInputDialog(null, line);
+                    if (str != null) {
+                        out.println(str);  // サーバーに送信
+                    }
+                }
+
+                if (line.contains("|REVEALEDCHAR")) {
+                    System.out.println(line);
+                    char c = line.toUpperCase().charAt(0); // revealedChar
+                    if (line.contains("GREEN")) {
+                        ui.k.getKeyBoardPanel().updateCol(c, Color.GREEN);
+
+                        // revealedIndex は 1桁の数字である前提
+                        int revealedIndex = (int)line.toCharArray()[1] - (int)'0';
+
+                        int[] jtmp = {-1, -1, -1, -1, -1};
+                        if (revealedIndex >= 0 && revealedIndex < 5) {
+                            jtmp[revealedIndex] = 0;
+                        }
+                        char[] ctmp = {'*','*','*','*','*'};
+                        ctmp[revealedIndex] = c;
+                        ui.k.wordsArea.addWordByMsg(new String(ctmp), jtmp);
+                    } else if (line.contains("YELLOW")) {
+                        ui.k.getKeyBoardPanel().updateCol(c, new Color(255, 204, 0));
+                        int[] jtmp = {1, -1, -1, -1, -1};
+                        ui.k.wordsArea.addWordByMsg(c + "****", jtmp);
+                    }
+                }
 
                 if(line.contains("接続しました")) {
                     ui.connectButton.setEnabled(false);
@@ -85,7 +125,9 @@ public class WordleClientThread extends Thread {
                         }
                     } 
                     if(line.contains("推測")) {
-                        //closableMessage.closeAll();
+                        if(itemShop != null) {
+                            itemShop.frame.dispose();
+                        }
                         closableMessage.showMessage(ui.frame, "推測する単語を入力してください。('item'でアイテムストア)", "あなたのターンです");
                     }
                 } else if(line.contains("勝利") || line.contains("負け") || line.contains("引き分け")) {

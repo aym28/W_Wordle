@@ -543,7 +543,8 @@ class TextPanel extends JPanel {
         itemButton.addActionListener(e -> {
             clientThread.sendMessage("item");
             System.out.println("item");
-            new ItemShop(clientThread, this);
+            ItemShop itemShop = new ItemShop(clientThread, this);
+            clientThread.setItemShop(itemShop);
         });
 
         gbc.gridx = 0;
