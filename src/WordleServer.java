@@ -160,7 +160,7 @@ public class WordleServer {
             if (!playerA.getOriginalAnswer().equals(playerA.answer)) {
                 finalMessageA = finalMessageA.concat("/nあなたが当てる単語は当初「");
                 finalMessageA = finalMessageA.concat(playerA.getOriginalAnswer());
-                finalMessageA = finalMessageA.concat("」でしたが、カオスチェンジにより「");
+                finalMessageA = finalMessageA.concat("」でしたが、/nカオスチェンジにより「");
                 finalMessageA = finalMessageA.concat(playerA.answer);
                 finalMessageA = finalMessageA.concat("」に変更されました。");
             } else {
@@ -172,7 +172,7 @@ public class WordleServer {
             if (!playerB.getOriginalAnswer().equals(playerB.answer)) {
                 finalMessageA = finalMessageA.concat("/n相手が当てる単語は当初「");
                 finalMessageA = finalMessageA.concat(playerB.getOriginalAnswer());
-                finalMessageA = finalMessageA.concat("」でしたが、カオスチェンジにより「");
+                finalMessageA = finalMessageA.concat("」でしたが、/nカオスチェンジにより「");
                 finalMessageA = finalMessageA.concat(playerB.answer);
                 finalMessageA = finalMessageA.concat("」に変更されました。");
             } else {
@@ -326,7 +326,7 @@ public class WordleServer {
         switch (item) {
             case SENGAN:
                 // out.println("--- 相手の盤面 ---");
-                str_out = str_out + (opponent.getAnswerSheetString());
+                out.println(opponent.getAnswerSheetString());
                 // out.println("--------------------");
                 break;
             case TENKEI_PIECE: {
