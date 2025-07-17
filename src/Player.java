@@ -141,7 +141,10 @@ class Player {
                 StringBuilder sb = new StringBuilder();
                 sb.append(word);
                 for (int j = 0; j < GLOBALVALS.wordLen; j++) {
-                    sb.append(" ").append(w.isCorrect[j]);
+                    /*
+                    // ここに追加されるString[5]を直せばOK
+                    */
+                    sb.append(" ").append(w.isCorrect[j]);      
                 }
                 return sb.toString();
             }
