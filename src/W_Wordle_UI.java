@@ -963,15 +963,8 @@ class ItemShop{            //アイテムショップフレーム
         frame = new JFrame("ItemShop");
         frame.setLayout(new GridBagLayout());
         GridBagConstraints gbcFrame = new GridBagConstraints();
-        
-        ItemShop(WordleClientThread wordleClientThread, TextPanel textPanel) {
-        this.wordleClientThread = wordleClientThread;
-        this.textPanel = textPanel;
-        frame = new JFrame("ItemShop");
-        frame.setLayout(new GridBagLayout());
-        GridBagConstraints gbcFrame = new GridBagConstraints(); 
             
-        //for文でitemstoreフレームを作成
+        //for文でitemshopフレームを作成
         for(Item item : Item.values()) {
             ImageIcon rawicon = new ImageIcon("./res/"+item.name()+"img.png");
             Image scaledImg = rawicon.getImage().getScaledInstance(64, 64, Image.SCALE_SMOOTH);
@@ -990,7 +983,7 @@ class ItemShop{            //アイテムショップフレーム
             itembutton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                   wordleClientThread.sendMessage(String.valueOf(index));
+                   wordleClientThread.sendMessage(String.valueOf(index+1));
                 }
             });
             frame.add(itembutton, gbcFrame);
