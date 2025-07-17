@@ -160,7 +160,7 @@ public class WordleServer {
             if (!playerA.getOriginalAnswer().equals(playerA.answer)) {
                 finalMessageA = finalMessageA.concat("/nあなたが当てる単語は当初「");
                 finalMessageA = finalMessageA.concat(playerA.getOriginalAnswer());
-                finalMessageA = finalMessageA.concat("」でしたが、カオスチェンジにより「");
+                finalMessageA = finalMessageA.concat("」でしたが、/nカオスチェンジにより「");
                 finalMessageA = finalMessageA.concat(playerA.answer);
                 finalMessageA = finalMessageA.concat("」に変更されました。");
             } else {
@@ -172,7 +172,7 @@ public class WordleServer {
             if (!playerB.getOriginalAnswer().equals(playerB.answer)) {
                 finalMessageA = finalMessageA.concat("/n相手が当てる単語は当初「");
                 finalMessageA = finalMessageA.concat(playerB.getOriginalAnswer());
-                finalMessageA = finalMessageA.concat("」でしたが、カオスチェンジにより「");
+                finalMessageA = finalMessageA.concat("」でしたが、/nカオスチェンジにより「");
                 finalMessageA = finalMessageA.concat(playerB.answer);
                 finalMessageA = finalMessageA.concat("」に変更されました。");
             } else {
@@ -187,7 +187,7 @@ public class WordleServer {
             if (!playerB.getOriginalAnswer().equals(playerB.answer)) {
                 finalMessageB = finalMessageB.concat("/nあなたが当てる単語は当初「");
                 finalMessageB = finalMessageB.concat(playerB.getOriginalAnswer());
-                finalMessageB = finalMessageB.concat("」でしたが、カオスチェンジにより「");
+                finalMessageB = finalMessageB.concat("」でしたが、/nカオスチェンジにより「");
                 finalMessageB = finalMessageB.concat(playerB.answer);
                 finalMessageB = finalMessageB.concat("」に変更されました。");
             } else {
@@ -199,7 +199,7 @@ public class WordleServer {
             if (!playerA.getOriginalAnswer().equals(playerA.answer)) {
                 finalMessageB = finalMessageB.concat("/n相手が当てる単語は当初「");
                 finalMessageB = finalMessageB.concat(playerA.getOriginalAnswer());
-                finalMessageB = finalMessageB.concat("」でしたが、カオスチェンジにより「");
+                finalMessageB = finalMessageB.concat("」でしたが、/nカオスチェンジにより「");
                 finalMessageB = finalMessageB.concat(playerA.answer);
                 finalMessageB = finalMessageB.concat("」に変更されました。");
             } else {
@@ -233,9 +233,14 @@ public class WordleServer {
             currentOut.println("ポイント: " + currentPlayer.getPoints());
             // サイレンス状態ならメッセージを表示
             if (currentPlayer.isSilenced()) {
-                currentOut.println("【アイテム封印中】");
+                currentOut.println("推測する単語を入力してください。【アイテム封印中】|PROMPT");                
+            } else {
+                if(currentPlayer.canUseItem()) {
+                    currentOut.println("推測する単語を入力してください。('item'でアイテムストア)|PROMPT");
+                } else {
+                    currentOut.println("推測する単語を入力してください。|PROMPT");
+                }
             }
-            currentOut.println("推測する単語を入力してください。('item'でアイテムストア)|PROMPT");
 
             String input = currentIn.readLine();
             if (input == null) return true;
@@ -279,13 +284,13 @@ public class WordleServer {
             return;
         }
 
-        out.println("\n--- アイテムストア (購入すると即座に使用します) ---|ITEM");
+        //out.println("\n--- アイテムストア (購入すると即座に使用します) ---|ITEM");
         List<Item> shopList = List.of(Item.values());
         for (int i = 0; i < shopList.size(); i++) {
             Item item = shopList.get(i);
             out.println((i + 1)+": "+ item.getName()+" ("+item.getCost()+" P) - "+item.getDescription());
         }
-        out.println("使用するアイテムの番号を入力してください (戻る場合は'0')|PROMPT|ITEM");
+        // out.println("使用するアイテムの番号を入力してください (戻る場合は'0')|ITEM|PROMPT");
 
         String itemNumberStr = in.readLine();
         try {
@@ -315,7 +320,8 @@ public class WordleServer {
      * アイテムの効果を実際に実行する
      */
     private static void executeItemEffect(Player user, Player opponent, Item item, PrintWriter out, BufferedReader in) throws IOException {
-        out.println("「" + item.getName() + "」を使用しました。");
+        String str_out = "";
+        str_out = str_out + ("「" + item.getName() + "」を使用しました。/n");
 
         switch (item) {
             case SENGAN:
@@ -329,10 +335,11 @@ public class WordleServer {
                 userAnswerChars.removeAll(userGuessedChars);
 
                 if (userAnswerChars.isEmpty()) {
-                    out.println("結果: 新しく開示できる文字はありませんでした。");
+                    str_out = str_out + ("結果: 新しく開示できる文字はありませんでした。/n");
                 } else {
                     Character revealedChar = new ArrayList<>(userAnswerChars).get(0);
-                    out.println("結果: 「" + revealedChar + "」があなたの答えに含まれています。(黄色)");
+                    str_out = str_out + ("結果: 「" + revealedChar + "」があなたの答えに含まれています。(黄色)/n");
+                    out.println(revealedChar + " YELLOW |REVEALEDCHAR");
                 }
                 break;
             }
@@ -352,24 +359,25 @@ public class WordleServer {
                 }
 
                 if (unknownGreenIndexes.isEmpty()) {
-                    out.println("結果: 新しく開示できる緑色の文字はありませんでした。");
+                    str_out = str_out + ("結果: 新しく開示できる緑色の文字はありませんでした。/n");
                 } else {
                     int revealedIndex = unknownGreenIndexes.get(0);
                     char revealedChar = user.answer.charAt(revealedIndex);
-                    out.println("結果: あなたの答えの" + (revealedIndex + 1) + "文字目は「" + revealedChar + "」です。(緑色)");
+                    str_out = str_out + ("結果: あなたの答えの" + (revealedIndex + 1) + "文字目は「" + revealedChar + "」です。(緑色)/n");
+                    out.println(revealedChar + "" + revealedIndex + " GREEN |REVEALEDCHAR");
                 }
                 break;
             }
             case DOUBLE_MOVE:
                 user.grantDoubleMove();
-                out.println("次の推測の後、もう一度あなたのターンになります。");
+                str_out = str_out + ("次の推測の後、もう一度あなたのターンになります。/n追加ターンではアイテムは使えません。");
                 break;
             case SILENCE:
                 opponent.setSilenced(true);
-                out.println("次の相手のターン、アイテム使用を封じました。");
+                str_out = str_out + ("次の相手のターン、アイテム使用を封じました。/n");
                 break;
             case WORD_SCAN: {
-                out.println("スキャンする種類を選んでください (1: 母音, 2: 子音)|PROMPT");
+                out.println("スキャンする種類を選んでください(1:母音,2:子音)/n|INPUTREQ|ITEM|PROMPT");
                 String choice = in.readLine();
                 String vowels = "aiueo";
                 Set<Character> foundChars = new HashSet<>();
@@ -377,43 +385,62 @@ public class WordleServer {
                     for (char c : user.answer.toCharArray()) {
                         if (vowels.indexOf(c) != -1) foundChars.add(c);
                     }
-                    out.println("結果(母音): " + foundChars);
+                    str_out = str_out + ("結果(母音): " + foundChars);
+                    char[] chars = new char[foundChars.size()];
+                    int i = 0;
+                    for (char c : foundChars) {
+                        chars[i++] = c;
+                    }
+                    for(int j = 0 ; j < foundChars.size(); j++) {
+                        out.println(chars[j] + " YELLOW |REVEALEDCHAR");
+                    }
                 } else if ("2".equals(choice)) {
                     for (char c : user.answer.toCharArray()) {
                         if (vowels.indexOf(c) == -1) foundChars.add(c);
                     }
-                    out.println("結果(子音): " + foundChars);
+                    str_out = str_out + ("結果(子音): " + foundChars);
+                    char[] chars = new char[foundChars.size()];
+                    int i = 0;
+                    for (char c : foundChars) {
+                        chars[i++] = c;
+                    }
+                    for(int j = 0 ; j < foundChars.size(); j++) {
+                        out.println(chars[j] + " YELLOW |REVEALEDCHAR");
+                    }
                 } else {
-                    out.println("無効な選択です。");
+                    str_out = str_out + ("無効な選択です。");
                 }
                 break;
             }
             case QUESTION:
-                out.println("調べたい文字を1文字入力してください。|PROMPT");
+                out.println("調べたい文字を1文字入力してください。/n|INPUTREQ|ITEM|PROMPT");
                 String charToAsk = in.readLine();
                 if (charToAsk != null && charToAsk.length() == 1) {
                     if (user.answer.contains(charToAsk.toLowerCase())) {
-                        out.println("結果: その文字はあなたの答えに【含まれています】(黄色)");
+                        str_out = str_out + ("結果: その文字はあなたの答えに【含まれています】(黄色)/n|ITEM");
+                        out.println(charToAsk.toLowerCase().toCharArray()[0] + " YELLOW |REVEALEDCHAR");
                     } else {
-                        out.println("結果: その文字はあなたの答えに【含まれていません】(黒)");
+                        str_out = str_out + ("結果: その文字はあなたの答えに【含まれていません】(黒)/n|ITEM");
+                        out.println(charToAsk.toLowerCase().toCharArray()[0] + " BLACK |REVEALEDCHAR");
                     }
                 } else {
-                    out.println("入力が無効です。");
+                    str_out = str_out + ("入力が無効です。/n|ITEM");
                 }
                 break;
             case CHAOS_CHANGE:
-                out.println("相手の新しいお題となる単語(5文字)を入力してください。|PROMPT");
+                out.println("相手の新しいお題となる単語(5文字)を入力してください。/n|INPUTREQ|ITEM|PROMPT");
                 while (true) {
                     String newWord = in.readLine();
                     if (newWord != null && newWord.length() == WORD_SIZE && answerWordList.isInList(newWord.toLowerCase())) {
                         opponent.answer = newWord.toLowerCase();
-                        out.println("お題を「" + newWord.toLowerCase() + "」に再設定しました。");
+                        out.println("お題を「" + newWord.toLowerCase() + "」に再設定しました。/n|ITEM");
                         user.setUsedChaosChange();
                         break;
                     }
-                    out.println("エラー: その単語はリストにありません。もう一度入力してください。|PROMPT");
+                    out.println("エラー: その単語はリストにありません。もう一度入力してください。/n|INPUTREQ|ITEM|PROMPT");
                 }
                 break;
         }
+        out.println(str_out + "|ITEM");
     }
 }
