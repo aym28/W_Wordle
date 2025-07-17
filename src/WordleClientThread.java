@@ -19,6 +19,7 @@ public class WordleClientThread extends Thread {
     private Supplier<String> inputSupplier;
     PrintWriter out;
     ClosableMessage closableMessage;
+    ItemShop itemShop;
 
     public WordleClientThread(W_Wordle_UI ui, String host, int port, Consumer<String> messageHandler, Supplier<String> inputSupplier) {
         this.ui = ui;
@@ -26,6 +27,10 @@ public class WordleClientThread extends Thread {
         this.port = port;
         this.messageHandler = messageHandler;
         this.inputSupplier = inputSupplier;
+    }
+
+    public void setItemShop(ItemShop itemShop) {
+        this.itemShop = itemShop;
     }
 
     @Override
@@ -84,6 +89,9 @@ public class WordleClientThread extends Thread {
                         }
                     } 
                     if(line.contains("推測")) {
+                        if(itemShop != null) {
+                            itemShop.frame.dispose();
+                        }
                         closableMessage.closeAll();
                         closableMessage.showMessage(ui.frame, "推測する単語を入力してください。('item'でアイテムストア)", "あなたのターンです");
                     }
