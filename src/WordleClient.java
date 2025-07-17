@@ -26,7 +26,7 @@ public class WordleClient {
             // サーバーからのメッセージを待ち受け、表示し続けるループ
             while ((serverMessage = in.readLine()) != null) {
 
-                String[] parts = serverMessage.split("\\|", 2);
+                String[] parts = serverMessage.split("\\|");
                 // メッセージ内の "\n" を実際の改行に置換して表示
                 String displayMessage = parts[0].replace("\\n", "\n");
                 String command = (parts.length > 1) ? parts[1] : "";

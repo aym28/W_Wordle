@@ -288,7 +288,7 @@ public class WordleServer {
         List<Item> shopList = List.of(Item.values());
         for (int i = 0; i < shopList.size(); i++) {
             Item item = shopList.get(i);
-            //out.printf("%d: %s (%d P) - %s\n", i + 1, item.getName(), item.getCost(), item.getDescription());
+            out.println((i + 1)+": "+ item.getName()+" ("+item.getCost()+" P) - "+item.getDescription());
         }
         // out.println("使用するアイテムの番号を入力してください (戻る場合は'0')|ITEM|PROMPT");
 

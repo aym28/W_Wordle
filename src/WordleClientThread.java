@@ -33,6 +33,10 @@ public class WordleClientThread extends Thread {
         this.inputSupplier = inputSupplier;
     }
 
+    public void setItemShop(ItemShop itemShop) {
+        this.itemShop = itemShop;
+    }
+
     @Override
     public void run() {
         closableMessage = new ClosableMessage();
