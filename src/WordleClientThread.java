@@ -79,7 +79,7 @@ public class WordleClientThread extends Thread {
                         ui.k.wordsArea.addWordByMsg(c + "****", jtmp);
                     } else if(line.contains("BLACK")) {
                         ui.k.getKeyBoardPanel().updateCol(c, Color.BLACK);
-                        int[] jtmp = {1, -1, -1, -1, -1};
+                        int[] jtmp = {-1, -1, -1, -1, -1};
                         ui.k.wordsArea.addWordByMsg(c + "****", jtmp);
                     }
                 }

@@ -14,6 +14,7 @@ public class W_Wordle_UI {
     int x, y;
     WordleClientThread clientThread;
     JButton connectButton;
+    String ip = "localhost";
 
     public W_Wordle_UI(int x, int y) {
         frame = new JFrame("W_Wordle");
@@ -56,6 +57,26 @@ public class W_Wordle_UI {
         comPanel.add(portNum);
         comPanel.add(portSetButton);
         frame.add(comPanel, gbc);
+
+        JPanel ipPanel = new JPanel();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.BOTH;
+
+        JLabel ipLabel = new JLabel("ホストIPアドレス");
+        JTextArea ipText = new JTextArea();
+        ipText.setPreferredSize(new Dimension(100,20));
+        JLabel ipNum = new JLabel(ip);
+        JButton ipSetButton = new JButton("設定");
+        IPSetListener ipSetListener = new IPSetListener(ipText, ipNum, ipSetButton);
+        ipSetButton.addActionListener(ipSetListener);
+
+        ipPanel.add(ipLabel);
+        ipPanel.add(ipText);
+        ipPanel.add(ipNum);
+        ipPanel.add(ipSetButton);
+        frame.add(ipPanel, gbc);
 
         JPanel explanation = new JPanel();
         JTextPane explainText = new JTextPane();
@@ -118,7 +139,7 @@ doc.insertString(doc.getLength(), "features such as hint items enhance the gamep
         connectButton = new JButton("接続");
         connectButton.addActionListener(e -> {
         clientThread = new WordleClientThread(
-                this, "localhost", PORT,
+                this, ip, PORT,
                 msg -> SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, msg)),
                 () -> JOptionPane.showInputDialog(frame, "お題として5文字の単語を入力してください:")
             );
@@ -222,6 +243,24 @@ doc.insertString(doc.getLength(), "features such as hint items enhance the gamep
                 } catch (IllegalArgumentException ex) {
                     JOptionPane.showMessageDialog(null, ex.getMessage(), "入力エラー", JOptionPane.ERROR_MESSAGE);
                 }
+            }
+        }
+    }
+
+    public class IPSetListener implements ActionListener {
+        JLabel ipNum;
+        JTextArea ipText;
+        JButton ipSetButton;
+        IPSetListener(JTextArea ipText, JLabel ipNum, JButton ipSetButton) {
+            this.ipNum = ipNum;
+            this.ipText = ipText;
+            this.ipSetButton = ipSetButton;
+        }
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (e.getSource() == ipSetButton) {
+                ip = ipText.getText().trim();
+                ipNum.setText(ip);
             }
         }
     }
