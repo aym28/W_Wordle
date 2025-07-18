@@ -159,26 +159,7 @@ class Player {
                         }
                     }
                 }
-               final boolean[] checked = new boolean[GLOBALVALS.wordLen];
-                for (int j = 0; j < GLOBALVALS.wordLen; j++) {
-                    checked[j] = false;
-                    w.isCorrect[j] = -1;
-                        if (word.charAt(j) == this.answer.charAt(j)) {
-                            checked[j] = true;
-                            w.isCorrect[j] = 0;
-                        }
-                }
                 
-                for (int j = 0; j < GLOBALVALS.wordLen; j++) {
-                    if (w.isCorrect[j] == 0) continue;
-                    for (int t = 0; t < GLOBALVALS.wordLen; t++) {
-                        if (j != t && w.isCorrect[t] != 0 && !checked[t] && word.charAt(j) == this.answer.charAt(t)) {
-                            checked[t] = true;
-                            w.isCorrect[j] = 1;
-                            break;
-                        }
-                    }
-                }
                 for (int j = 0; j < GLOBALVALS.wordLen; j++) {
                     sb.append(" ").append(w.isCorrect[j]);      
                 }
