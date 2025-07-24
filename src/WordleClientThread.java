@@ -187,16 +187,20 @@ public class WordleClientThread extends Thread {
                     }
                     for(int i = 0; i < GLOBALVALS.wordLen; i++) {
                         char c = guessedWord.toUpperCase().toCharArray()[i];
-                        switch (judgment[i]) {
-                            case 0:
-                                ui.k.getKeyBoardPanel().updateCol(c,Color.GREEN);
-                                break;
-                            case 1:
-                                ui.k.getKeyBoardPanel().updateCol(c, new Color(255, 204, 0));
-                                break;
-                            case -1:
-                                ui.k.getKeyBoardPanel().updateCol(c, Color.BLACK);
-                                break;
+                        if(ui.k.getKeyBoardPanel().usedCharCol[(int) c - 'A'] == Color.gray
+                           || (ui.k.getKeyBoardPanel().usedCharCol[(int) c - 'A'].equals(new Color(255,204,0))
+                           && judgment[i] == 0)) {
+                            switch (judgment[i]) {
+                                case 0:
+                                    ui.k.getKeyBoardPanel().updateCol(c,Color.GREEN);
+                                    break;
+                                case 1:
+                                    ui.k.getKeyBoardPanel().updateCol(c, new Color(255, 204, 0));
+                                    break;
+                                case -1:
+                                    ui.k.getKeyBoardPanel().updateCol(c, Color.BLACK);
+                                    break;
+                            }
                         }
                     }
                     try {
